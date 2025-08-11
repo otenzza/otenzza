@@ -1,0 +1,105 @@
+html
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Otenzza</title>
+  <meta name="description" content="Otenzza — altar digital, presença e identidade."/>
+  <link rel="icon" href="/favicon.ico" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .glass { backdrop-filter: blur(8px); background: rgba(255,255,255,0.06); }
+    .grid-bg { background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 24px 24px; }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-zinc-100">
+  <header class="w-full sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img src="https://placehold.co/48x48/111/FFF?text=O" alt="Otenzza" class="w-10 h-10 rounded-xl object-cover"/>
+        <span class="font-semibold tracking-widest text-sm text-zinc-300">OTENZZA</span>
+      </div>
+      <nav class="hidden sm:flex items-center gap-6 text-sm text-zinc-300">
+        <a href="#manifesto" class="hover:text-white">Manifesto</a>
+        <a href="#features" class="hover:text-white">Faces do Cubo</a>
+        <a href="#join" class="hover:text-white">Entrar</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="max-w-6xl mx-auto px-4 pt-16 pb-20">
+    <div class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="text-4xl md:text-6xl font-bold leading-tight">Seu <span class="text-zinc-400">altar digital</span> de presença e identidade.</h1>
+        <p class="mt-5 text-zinc-300/90 leading-relaxed">Otenzza é um espaço fechado onde você constrói um cubo com quatro faces — Visualidade, Som, Texto e Vibe — e abre portas secretas para conexões reais.</p>
+        <div class="mt-8 flex flex-col sm:flex-row gap-3">
+          <a href="#join" class="px-5 py-3 rounded-2xl bg-white/90 text-black font-medium hover:bg-white">Quero meu Cubo</a>
+          <a href="#manifesto" class="px-5 py-3 rounded-2xl border border-zinc-700 hover:border-zinc-500">Ler manifesto</a>
+        </div>
+      </div>
+      <div class="relative grid-bg rounded-3xl overflow-hidden">
+        <div class="aspect-[4/3] w-full grid place-items-center">
+          <div class="glass rounded-3xl p-8 border border-white/10">
+            <p class="text-sm text-zinc-300">Prévia do Cubo</p>
+            <div class="mt-4 grid grid-cols-2 gap-3">
+              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Visual</div>
+              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Som</div>
+              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Texto</div>
+              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Vibe</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="manifesto" class="max-w-4xl mx-auto px-4 py-16 border-t border-white/10">
+    <h2 class="text-2xl md:text-3xl font-semibold">Manifesto</h2>
+    <p class="mt-4 text-zinc-300/90 leading-relaxed">Sem algoritmo, sem mendigar atenção. Otenzza é presença, rito e estética. Aqui, cada elemento é uma chave que abre portas: conexões discretas, encontros certos e impacto real.</p>
+  </section>
+
+  <section id="features" class="max-w-6xl mx-auto px-4 py-16 border-t border-white/10">
+    <h2 class="text-2xl md:text-3xl font-semibold">Faces do Cubo</h2>
+    <div class="mt-8 grid md:grid-cols-4 gap-4">
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
+        <h3 class="font-medium">Visualidade</h3>
+        <p class="mt-2 text-sm text-zinc-400">Imagens e artefatos que constroem sua presença.</p>
+      </div>
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
+        <h3 class="font-medium">Som</h3>
+        <p class="mt-2 text-sm text-zinc-400">Beats, vozes, texturas. Sua assinatura sonora.</p>
+      </div>
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
+        <h3 class="font-medium">Texto</h3>
+        <p class="mt-2 text-sm text-zinc-400">Anotações, códigos e palavras que importam.</p>
+      </div>
+      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
+        <h3 class="font-medium">Vibe</h3>
+        <p class="mt-2 text-sm text-zinc-400">Clima, rituais e chaves de acesso.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="join" class="max-w-3xl mx-auto px-4 py-16 border-t border-white/10">
+    <h2 class="text-2xl md:text-3xl font-semibold">Entre na lista</h2>
+    <p class="mt-2 text-zinc-300/90">Receba o convite quando liberarmos os primeiros cubos.</p>
+    <form class="mt-6 flex flex-col sm:flex-row gap-3" onsubmit="event.preventDefault(); alert('Recebido. Em breve entraremos em contato.');">
+      <input type="email" required placeholder="seu@email.com" class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"/>
+      <button class="px-5 py-3 rounded-2xl bg-white/90 text-black font-medium hover:bg-white">Quero o convite</button>
+    </form>
+  </section>
+
+  <footer class="max-w-6xl mx-auto px-4 py-10 text-sm text-zinc-500 border-t border-white/10">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <p>© <span id="y"></span> Otenzza. Todos os direitos reservados.</p>
+      <div class="flex items-center gap-4">
+        <a href="#" class="hover:text-zinc-300">Termos</a>
+        <a href="#" class="hover:text-zinc-300">Privacidade</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
+</body>
+</html>
