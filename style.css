@@ -1,35 +1,62 @@
-/* Reset básico */
-body {
+* {
   margin: 0;
   padding: 0;
-  background-color: #000;
-  font-family: Arial, sans-serif;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+  box-sizing: border-box;
 }
 
-/* Centraliza o cubo */
-.cubo-container {
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #0a0a0a;
+  color: #fff;
+  min-height: 100vh;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+}
+
+h1, h2, h3 {
+  font-weight: 700;
+}
+
+.cube {
+  position: relative;
+  width: 250px;
+  height: 250px;
+  transform-style: preserve-3d;
+  animation: rotateCube 10s infinite linear; /* animação de rotação */
+}
+
+.face {
+  width: 250px;
+  height: 250px;
+  position: absolute;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid #f4f4f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: white;
+  text-transform: uppercase;
+}
+
+/* Efeito suave ao carregar */
+.fade-in {
+  animation: fadeIn 1.2s ease-in-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* Animação de rotação do cubo */
-svg {
-  width: 300px;
-  height: 300px;
-  animation: girar 12s linear infinite;
-}
-
-@keyframes girar {
-  from {
-    transform: rotateY(0deg);
+@keyframes rotateCube {
+  0% {
+    transform: rotateX(0deg) rotateY(0deg);
   }
-  to {
-    transform: rotateY(360deg);
+  100% {
+    transform: rotateX(360deg) rotateY(360deg);
   }
 }
