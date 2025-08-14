@@ -1,31 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="style.css">
-  <title>Otenzza — your altar of presence & identity</title>
-
-  <!-- OG / Social -->
-  <meta property="og:title" content="Otenzza — your altar of presence & identity" />
-  <meta property="og:description" content="Build your private Cube — Visual, Sound, Text and Vibe. No algorithm. Only presence." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://otenzza.com" />
-  <meta property="og:image" content="https://otenzza.com/logo.png" />
-  <link rel="icon" href="/favicon.ico" />
-
-  <!-- Tailwind CDN (rápido p/ protótipo) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {}
-      }
-    }
-  </script>
-</head>
+<head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Otenzza — your altar of presence & identity</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="style.css">
 
   <!-- OG / Social -->
   <meta property="og:title" content="Otenzza — your altar of presence & identity" />
@@ -33,7 +13,6 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://otenzza.com" />
   <meta property="og:image" content="https://otenzza.com/logo.png" />
-  <link rel="icon" href="/favicon.ico" />
 
   <!-- Tailwind CDN (rápido p/ protótipo) -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -42,50 +21,48 @@
       theme: {
         extend: {
           colors: {
-            zinc: {
-              950: '#0b0b0d'
-            },
-            otenzza: {
-              blue: '#214BFF'
-            }
+            zinc: { 950: '#0b0b0d' },
+            otenzza: { blue: '#214BFF' }
           }
         }
       }
     }
   </script>
 
+  <!-- Fundo pontilhado sutil -->
   <style>
-    /* pontilhado sutil no fundo */
     .grid-bg {
       background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
       background-size: 24px 24px;
     }
-    /* “cubo” placeholder em CSS (substitua por imagem quando quiser) */
-    .cube {
-      width: 136px; height: 136px; position: relative; transform-style: preserve-3d;
-      animation: float 6s ease-in-out infinite;
-    }
-    .cube::before, .cube::after {
-      content: "";
-      position: absolute; inset: 0; border-radius: 12px;
-      background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.25), rgba(33,75,255,.9));
-      filter: blur(.2px);
-    }
-    .cube::after {
-      transform: translateZ(-16px);
-      opacity: .55;
-      background: radial-gradient(120% 120% at 70% 60%, rgba(255,255,255,.15), rgba(33,75,255,.75));
-    }
-    @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
   </style>
-  <noscript><style> [data-i18n]{opacity:1!important} </style></noscript>
+  <noscript><style>[data-i18n]{opacity:1!important}</style></noscript>
 </head>
 
 <body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg">
   <!-- Top bar -->
   <header class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <div class="w-9 h-9 rounded-xl bg-otenzza-blue/80 shadow-lg shadow-otenzza-blue/20"></div>
+      <!-- Mini cubo no header -->
+      <svg class="w-8 h-8" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
+            <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
+          </linearGradient>
+          <linearGradient id="mLeft" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1332B8"/>
+            <stop offset="100%" stop-color="#1C2C6E"/>
+          </linearGradient>
+          <linearGradient id="mRight" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2D5BFF"/>
+            <stop offset="100%" stop-color="#1A3DE0"/>
+          </linearGradient>
+        </defs>
+        <polygon fill="url(#mTop)"  points="120,28 205,78 120,128 35,78"/>
+        <polygon fill="url(#mLeft)" points="35,78 120,128 120,208 35,158"/>
+        <polygon fill="url(#mRight)" points="205,78 120,128 120,208 205,158"/>
+      </svg>
       <span class="tracking-widest text-sm font-semibold">OTENZZA</span>
     </div>
 
@@ -121,57 +98,40 @@
 
       <div class="md:justify-self-end">
         <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm w-fit">
-          <!-- CUBO OTENZZA (SVG) -->
-<svg class="cube3d mx-auto" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Otenzza Cube">
-  <defs>
-    <!-- Gradientes: top/left/right do cubo -->
-    <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
-      <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
-    </linearGradient>
-    <linearGradient id="gLeft" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1332B8" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#1C2C6E" stop-opacity="0.95"/>
-    </linearGradient>
-    <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#2D5BFF" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#1A3DE0" stop-opacity="0.95"/>
-    </linearGradient>
+          <!-- CUBO OTENZZA (SVG animado via CSS em style.css) -->
+          <svg class="cube3d mx-auto" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Otenzza Cube">
+            <defs>
+              <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
+                <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
+              </linearGradient>
+              <linearGradient id="gLeft" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#1332B8" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#1C2C6E" stop-opacity="0.95"/>
+              </linearGradient>
+              <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2D5BFF" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#1A3DE0" stop-opacity="0.95"/>
+              </linearGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="12" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <ellipse cx="120" cy="210" rx="62" ry="14" fill="#0b0b0d" opacity="0.55"/>
+            <g filter="url(#glow)">
+              <polygon fill="url(#gTop)"  points="120,28 205,78 120,128 35,78"  opacity="0.95"/>
+              <polygon fill="url(#gLeft)" points="35,78 120,128 120,208 35,158"  opacity="0.98"/>
+              <polygon fill="url(#gRight)" points="205,78 120,128 120,208 205,158" opacity="0.98"/>
+            </g>
+          </svg>
 
-    <!-- Glow suave ao redor -->
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="12" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
-
-  <!-- Sombra no “chão” -->
-  <ellipse cx="120" cy="210" rx="62" ry="14" fill="#0b0b0d" opacity="0.55"/>
-
-  <!-- Grupo do cubo (leve rotação animada no CSS) -->
-  <g filter="url(#glow)">
-    <!-- Face do topo -->
-    <polygon fill="url(#gTop)"
-             points="120,28 205,78 120,128 35,78"
-             opacity="0.95"/>
-    <!-- Face esquerda -->
-    <polygon fill="url(#gLeft)"
-             points="35,78 120,128 120,208 35,158"
-             opacity="0.98"/>
-    <!-- Face direita -->
-    <polygon fill="url(#gRight)"
-             points="205,78 120,128 120,208 205,158"
-             opacity="0.98"/>
-  </g>
-</svg>
-          <div class="mt-5 grid grid-cols-2 gap-3 text-center">
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Visual</div>
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Sound</div>
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Text</div>
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Vibe</div>
+          <!-- Botões das faces com classes de realce -->
+          <div class="mt-5 grid grid-cols-2 gap-3 text-center cube-panel">
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Visual</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Sound</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Text</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Vibe</div>
           </div>
         </div>
       </div>
@@ -250,7 +210,6 @@
     const els = document.querySelectorAll("[data-i18n]");
     const btn = document.getElementById("langToggle");
     let current = "en";
-
     function applyLang(lang) {
       els.forEach(el => {
         const key = el.getAttribute("data-i18n");
@@ -260,11 +219,9 @@
       document.documentElement.lang = (lang === "en") ? "en" : "pt-BR";
       current = lang;
     }
-
     btn.addEventListener("click", () => applyLang(current === "en" ? "pt" : "en"));
     applyLang("en");
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
-
 </html>
