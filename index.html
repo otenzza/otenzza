@@ -99,7 +99,52 @@
 
       <div class="md:justify-self-end">
         <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm w-fit">
-          <div class="cube mx-auto"></div>
+          <!-- CUBO OTENZZA (SVG) -->
+<svg class="cube3d mx-auto" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Otenzza Cube">
+  <defs>
+    <!-- Gradientes: top/left/right do cubo -->
+    <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
+      <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
+    </linearGradient>
+    <linearGradient id="gLeft" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1332B8" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#1C2C6E" stop-opacity="0.95"/>
+    </linearGradient>
+    <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2D5BFF" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#1A3DE0" stop-opacity="0.95"/>
+    </linearGradient>
+
+    <!-- Glow suave ao redor -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Sombra no “chão” -->
+  <ellipse cx="120" cy="210" rx="62" ry="14" fill="#0b0b0d" opacity="0.55"/>
+
+  <!-- Grupo do cubo (leve rotação animada no CSS) -->
+  <g filter="url(#glow)">
+    <!-- Face do topo -->
+    <polygon fill="url(#gTop)"
+             points="120,28 205,78 120,128 35,78"
+             opacity="0.95"/>
+    <!-- Face esquerda -->
+    <polygon fill="url(#gLeft)"
+             points="35,78 120,128 120,208 35,158"
+             opacity="0.98"/>
+    <!-- Face direita -->
+    <polygon fill="url(#gRight)"
+             points="205,78 120,128 120,208 205,158"
+             opacity="0.98"/>
+  </g>
+</svg>
           <div class="mt-5 grid grid-cols-2 gap-3 text-center">
             <div class="rounded-xl bg-white/5 py-3 border border-white/10">Visual</div>
             <div class="rounded-xl bg-white/5 py-3 border border-white/10">Sound</div>
@@ -199,4 +244,5 @@
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
+
 </html>
