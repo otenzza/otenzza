@@ -6,39 +6,36 @@
   <title>OTENZZA — Presence, Identity, Precision.</title>
   <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
   <link rel="icon" href="/favicon.ico" />
-
-  <!-- Tailwind (tipografia/spacing) -->
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
-    :root { --bg:#0b0b0d; --ink:#e7e7ea; --muted:#a0a0a6; --blue:#214BFF; }
-    html,body { height:100%; }
+    :root{ --bg:#0b0b0d; --ink:#e7e7ea; --muted:#a0a0a6; --blue:#214BFF; }
+    html,body{ height:100% }
     body{
       background: radial-gradient(1200px 800px at 50% -10%, #101015 0%, #0b0b0d 45%, #07070a 100%);
       color:var(--ink);
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
-    .brand{ letter-spacing:.22em }
-    /* canvas ocupa o espaço e some moldura */
     #cubeCanvas{
       display:block;
       width:min(92vw, 720px);
       height:min(72vh, 520px);
       margin-inline:auto;
+      touch-action:none; /* pra gestos de arrastar funcionarem bem no mobile */
+      cursor:grab;
     }
-    /* input/botão com toque premium */
-    .field{ background:#0f0f13; border:1px solid rgba(255,255,255,.08); }
+    #cubeCanvas.dragging{ cursor:grabbing }
+    .field{ background:#0f0f13; border:1px solid rgba(255,255,255,.08) }
     .field:focus{ outline:none; border-color:rgba(255,255,255,.22); box-shadow:0 0 0 4px rgba(255,255,255,.05) }
     .cta{ background:#fff; color:#000; font-weight:600 }
     .cta:hover{ background:rgba(255,255,255,.92) }
+    .brand{ letter-spacing:.22em }
   </style>
 </head>
 <body>
   <div class="min-h-dvh flex flex-col">
     <header class="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <!-- mini marca (flat) -->
+        <!-- mini-cubo flat -->
         <svg width="22" height="22" viewBox="0 0 240 240" aria-hidden="true">
           <defs>
             <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
@@ -60,7 +57,6 @@
         </svg>
         <span class="brand text-xs font-semibold">OTENZZA</span>
       </div>
-      <!-- sua versão completa fica em /beta -->
       <a href="/beta/" class="text-xs text-zinc-400 hover:text-zinc-200">/beta</a>
     </header>
 
@@ -72,10 +68,10 @@
         A private, intentional space. No feed. No vanity metrics. Just your Cube.
       </p>
 
-      <!-- CUBO 3D INTERATIVO (sem moldura e sem sombra) -->
+      <!-- Canvas do cubo -->
       <canvas id="cubeCanvas" aria-label="Interactive Otenzza Cube"></canvas>
 
-      <!-- E-mail (troque YOUR_USERNAME pelo seu) -->
+      <!-- Lead -->
       <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
             method="post" target="_blank"
             class="mt-8 flex flex-col sm:flex-row gap-3 justify-center px-5">
@@ -84,10 +80,7 @@
                placeholder="your@email.com" />
         <button class="cta rounded-2xl px-5 py-3">Reserve early access</button>
       </form>
-
-      <p class="text-[11px] text-zinc-500 mt-3">
-        Founding members — limited circle.
-      </p>
+      <p class="text-[11px] text-zinc-500 mt-3">Founding members — limited circle.</p>
     </main>
 
     <footer class="text-[12px] text-zinc-500 py-6 text-center">
@@ -95,32 +88,29 @@
     </footer>
   </div>
 
-  <!-- Three.js (clássico, estável no GitHub Pages) -->
+  <!-- Three.js único (sem OrbitControls) -->
   <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
-
   <script>
-    // util: ano no rodapé
+    // ano
     document.getElementById('year').textContent = new Date().getFullYear();
 
-    // setup básico
     const canvas   = document.getElementById('cubeCanvas');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0); // fundo TRANSPARENTE
+    renderer.setClearColor(0x000000, 0); // fundo transparente
 
     const scene  = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
     camera.position.set(3.2, 2.4, 4.2);
     scene.add(camera);
 
-    // luzes – sem sombras para look mais “clean”
+    // Luzes clean (sem sombras)
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 5, 4);
     scene.add(key);
 
-    // cubo “maduro”: metálico/translúcido
+    // Cubo “maduro”
     const size = 1.6;
     const geo  = new THREE.BoxGeometry(size, size, size);
     const mat  = new THREE.MeshStandardMaterial({
@@ -133,25 +123,15 @@
     const cube = new THREE.Mesh(geo, mat);
     scene.add(cube);
 
-    // arestas bem discretas
+    // Arestas discretas
     const edges = new THREE.LineSegments(
       new THREE.EdgesGeometry(geo),
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18 })
+      new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.18 })
     );
     cube.add(edges);
 
-    // controles: usuário move (mouse/touch), sem auto-rotate
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enableZoom    = false;
-    controls.enablePan     = false;
-    controls.rotateSpeed   = 0.6;
-    controls.dampingFactor = 0.06;
-    controls.minPolarAngle = Math.PI * 0.15;
-    controls.maxPolarAngle = Math.PI * 0.85;
-
-    // resize responsivo ao tamanho real do canvas
-    function resize() {
+    // Resize responsivo do canvas
+    function resize(){
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
       renderer.setSize(w, h, false);
@@ -161,9 +141,46 @@
     window.addEventListener('resize', resize, { passive:true });
     resize();
 
-    // loop
+    // Controles de arrastar (mouse/touch)
+    let dragging = false, lastX = 0, lastY = 0, velX = 0, velY = 0;
+    const damp = 0.92; // inércia
+
+    function onDown(x, y){
+      dragging = true; lastX = x; lastY = y;
+      canvas.classList.add('dragging');
+    }
+    function onMove(x, y){
+      if(!dragging) return;
+      const dx = (x - lastX) / 160;
+      const dy = (y - lastY) / 160;
+      lastX = x; lastY = y;
+      cube.rotation.y += dx;
+      cube.rotation.x += dy;
+      velX = dx; velY = dy;
+    }
+    function onUp(){ dragging = false; canvas.classList.remove('dragging'); }
+
+    // mouse
+    canvas.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
+    window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
+    window.addEventListener('mouseup', onUp);
+
+    // touch
+    canvas.addEventListener('touchstart', e => {
+      const t = e.touches[0]; onDown(t.clientX, t.clientY);
+    }, {passive:true});
+    window.addEventListener('touchmove', e => {
+      const t = e.touches[0]; if(t) onMove(t.clientX, t.clientY);
+    }, {passive:true});
+    window.addEventListener('touchend', onUp);
+
+    // Loop com inércia suave
     function tick(){
-      controls.update();
+      if(!dragging){
+        cube.rotation.y += velX;
+        cube.rotation.x += velY;
+        velX *= damp; velY *= damp;
+      }
       renderer.render(scene, camera);
       requestAnimationFrame(tick);
     }
