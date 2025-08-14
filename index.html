@@ -4,38 +4,70 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTENZZA — Presence, Identity, Precision.</title>
-  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube.">
   <link rel="icon" href="/favicon.ico" />
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root{ --bg:#0b0b0d; --ink:#e7e7ea; --muted:#a0a0a6; --blue:#214BFF; }
-    html,body{ height:100% }
-    body{
-      background: radial-gradient(1200px 800px at 50% -10%, #101015 0%, #0b0b0d 45%, #07070a 100%);
-      color:var(--ink);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    :root{
+      --bg:#0b0b0d; --bg2:#101015; --ink:#e7e7ea; --muted:#a0a0a6; --blue:#214BFF;
+      --maxw:1100px;
     }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;color:var(--ink);
+      background: radial-gradient(1200px 800px at 50% -10%, var(--bg2) 0%, var(--bg) 45%, #07070a 100%);
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      font: 400 15px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
+      display:flex; flex-direction:column;
+    }
+    .container{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 20px}
+    header{padding:22px 0 6px}
+    .brand{display:flex; align-items:center; gap:10px; letter-spacing:.22em; font-weight:600; font-size:12px}
+    .brand svg{display:block}
+    .link-beta{color:#a7a7af; text-decoration:none; font-size:12px}
+    .link-beta:hover{color:#d8d8df}
+    main{flex:1; padding:0 0 56px}
+    .hero{ text-align:center; margin-top:8px }
+    .title{font-weight:600; letter-spacing:-0.01em; line-height:1.15;
+      font-size:32px}
+    @media (min-width:640px){ .title{font-size:40px} }
+    @media (min-width:900px){ .title{font-size:52px} }
+    .subtitle{color:#b7b7bf; max-width:880px; margin:10px auto 0}
+    /* canvas */
+    .canvas-wrap{display:flex; justify-content:center; margin:22px 0 0}
     #cubeCanvas{
-      display:block;
-      width:min(92vw, 720px);
-      height:min(72vh, 520px);
-      margin-inline:auto;
-      touch-action:none; /* pra gestos de arrastar funcionarem bem no mobile */
-      cursor:grab;
+      display:block; width:min(92vw, 720px); height:min(72vh, 520px);
+      touch-action:none; cursor:grab;
     }
     #cubeCanvas.dragging{ cursor:grabbing }
-    .field{ background:#0f0f13; border:1px solid rgba(255,255,255,.08) }
-    .field:focus{ outline:none; border-color:rgba(255,255,255,.22); box-shadow:0 0 0 4px rgba(255,255,255,.05) }
-    .cta{ background:#fff; color:#000; font-weight:600 }
+    /* form */
+    .lead{display:flex; flex-direction:column; gap:12px; align-items:center; margin-top:28px}
+    @media (min-width:640px){ .lead{flex-direction:row; justify-content:center} }
+    .field{
+      width: min(360px, 86vw);
+      padding:14px 16px; border-radius:16px; border:1px solid rgba(255,255,255,.08);
+      background:#0f0f13; color:var(--ink); outline:none;
+    }
+    .field:focus{ border-color:rgba(255,255,255,.22); box-shadow:0 0 0 4px rgba(255,255,255,.05) }
+    .cta{
+      padding:14px 18px; border-radius:16px; border:0; background:#fff;
+      color:#000; font-weight:600; cursor:pointer;
+    }
     .cta:hover{ background:rgba(255,255,255,.92) }
-    .brand{ letter-spacing:.22em }
+    .fine{color:#8b8b93; font-size:11px; margin-top:8px; text-align:center}
+    footer{color:#8b8b93; font-size:12px; padding:22px 0; text-align:center}
+    /* dotted background nuance */
+    .grid-bg{
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
   </style>
 </head>
 <body>
-  <div class="min-h-dvh flex flex-col">
-    <header class="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <!-- mini-cubo flat -->
+  <header class="container">
+    <div style="display:flex; align-items:center; justify-content:space-between">
+      <div class="brand">
+        <!-- mini cube (flat SVG) -->
         <svg width="22" height="22" viewBox="0 0 240 240" aria-hidden="true">
           <defs>
             <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
@@ -55,62 +87,55 @@
           <polygon fill="url(#mLeft)" points="35,78 120,128 120,208 35,158"/>
           <polygon fill="url(#mRight)" points="205,78 120,128 120,208 205,158"/>
         </svg>
-        <span class="brand text-xs font-semibold">OTENZZA</span>
+        <span>OTENZZA</span>
       </div>
-      <a href="/beta/" class="text-xs text-zinc-400 hover:text-zinc-200">/beta</a>
-    </header>
+      <a class="link-beta" href="/beta/">/beta</a>
+    </div>
+  </header>
 
-    <main class="flex-1 max-w-5xl mx-auto px-5 pb-14 text-center">
-      <h1 class="text-3xl sm:text-4xl md:text-5xl font-semibold tracking-tight mt-2">
-        Presence. Identity. <span class="text-white/90">Precision.</span>
-      </h1>
-      <p class="text-zinc-400 mt-3 max-w-2xl mx-auto">
-        A private, intentional space. No feed. No vanity metrics. Just your Cube.
-      </p>
+  <main class="container">
+    <section class="hero">
+      <h1 class="title">Presence. Identity. <span style="opacity:.95">Precision.</span></h1>
+      <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
 
-      <!-- Canvas do cubo -->
-      <canvas id="cubeCanvas" aria-label="Interactive Otenzza Cube"></canvas>
+      <div class="canvas-wrap grid-bg">
+        <canvas id="cubeCanvas" aria-label="Interactive Otenzza Cube"></canvas>
+      </div>
 
-      <!-- Lead -->
-      <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
-            method="post" target="_blank"
-            class="mt-8 flex flex-col sm:flex-row gap-3 justify-center px-5">
-        <input type="email" name="email" required
-               class="field rounded-2xl px-4 py-3 w-full sm:w-80"
-               placeholder="your@email.com" />
-        <button class="cta rounded-2xl px-5 py-3">Reserve early access</button>
+      <form class="lead" action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank">
+        <input class="field" type="email" name="email" required placeholder="your@email.com" />
+        <button class="cta" type="submit">Reserve early access</button>
       </form>
-      <p class="text-[11px] text-zinc-500 mt-3">Founding members — limited circle.</p>
-    </main>
+      <p class="fine">Founding members — limited circle.</p>
+    </section>
+  </main>
 
-    <footer class="text-[12px] text-zinc-500 py-6 text-center">
-      © <span id="year"></span> Otenzza. All rights reserved.
-    </footer>
-  </div>
+  <footer>© <span id="year"></span> Otenzza. All rights reserved.</footer>
 
-  <!-- Three.js único (sem OrbitControls) -->
-  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
-  <script>
+  <!-- Three.js via ES Modules (sem avisos) -->
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
+
     // ano
     document.getElementById('year').textContent = new Date().getFullYear();
 
     const canvas   = document.getElementById('cubeCanvas');
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0); // fundo transparente
+    renderer.setClearColor(0x000000, 0);
 
     const scene  = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
     camera.position.set(3.2, 2.4, 4.2);
     scene.add(camera);
 
-    // Luzes clean (sem sombras)
+    // luzes clean
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 5, 4);
     scene.add(key);
 
-    // Cubo “maduro”
+    // cubo maduro sem sombra
     const size = 1.6;
     const geo  = new THREE.BoxGeometry(size, size, size);
     const mat  = new THREE.MeshStandardMaterial({
@@ -123,14 +148,14 @@
     const cube = new THREE.Mesh(geo, mat);
     scene.add(cube);
 
-    // Arestas discretas
+    // arestas discretas
     const edges = new THREE.LineSegments(
       new THREE.EdgesGeometry(geo),
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.18 })
     );
     cube.add(edges);
 
-    // Resize responsivo do canvas
+    // resize responsivo
     function resize(){
       const w = canvas.clientWidth;
       const h = canvas.clientHeight;
@@ -141,14 +166,11 @@
     window.addEventListener('resize', resize, { passive:true });
     resize();
 
-    // Controles de arrastar (mouse/touch)
+    // arrastar (mouse/touch) com inércia
     let dragging = false, lastX = 0, lastY = 0, velX = 0, velY = 0;
-    const damp = 0.92; // inércia
+    const damp = 0.92;
 
-    function onDown(x, y){
-      dragging = true; lastX = x; lastY = y;
-      canvas.classList.add('dragging');
-    }
+    function onDown(x, y){ dragging = true; lastX = x; lastY = y; canvas.classList.add('dragging'); }
     function onMove(x, y){
       if(!dragging) return;
       const dx = (x - lastX) / 160;
@@ -164,7 +186,6 @@
     canvas.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
     window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
     window.addEventListener('mouseup', onUp);
-
     // touch
     canvas.addEventListener('touchstart', e => {
       const t = e.touches[0]; onDown(t.clientX, t.clientY);
@@ -174,7 +195,7 @@
     }, {passive:true});
     window.addEventListener('touchend', onUp);
 
-    // Loop com inércia suave
+    // loop com inércia
     function tick(){
       if(!dragging){
         cube.rotation.y += velX;
