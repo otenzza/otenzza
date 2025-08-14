@@ -4,42 +4,41 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTENZZA — Presence, Identity, Precision.</title>
-  <meta name="description" content="Build your private Cube — Visual, Sound, Text and Vibe. No algorithm. Only presence." />
+  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
   <link rel="icon" href="/favicon.ico" />
 
-  <!-- Tailwind (só pra tipografia/espaçamento) -->
+  <!-- Tailwind (tipografia/spacing) -->
   <script src="https://cdn.tailwindcss.com"></script>
+
   <style>
     :root { --bg:#0b0b0d; --ink:#e7e7ea; --muted:#a0a0a6; --blue:#214BFF; }
     html,body { height:100%; }
     body{
-      background:
-        radial-gradient(1200px 800px at 50% -10%, #101015 0%, #0b0b0d 45%, #07070a 100%);
+      background: radial-gradient(1200px 800px at 50% -10%, #101015 0%, #0b0b0d 45%, #07070a 100%);
       color:var(--ink);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .wrap{ min-height:100dvh; display:flex; flex-direction:column; }
     .brand{ letter-spacing:.22em }
-    .canvas-frame{
-      width:min(95vw,850px); aspect-ratio: 16/10; max-height:70vh;
-      border-radius:24px; border:1px solid rgba(255,255,255,.06);
-      background:linear-gradient(180deg, rgba(255,255,255,.02), transparent 34%);
-      overflow:hidden; margin-inline:auto;
+    /* canvas ocupa o espaço e some moldura */
+    #cubeCanvas{
+      display:block;
+      width:min(92vw, 720px);
+      height:min(72vh, 520px);
+      margin-inline:auto;
     }
-    canvas{ display:block; width:100%; height:100%; }
-    /* botão e input premium */
+    /* input/botão com toque premium */
     .field{ background:#0f0f13; border:1px solid rgba(255,255,255,.08); }
     .field:focus{ outline:none; border-color:rgba(255,255,255,.22); box-shadow:0 0 0 4px rgba(255,255,255,.05) }
     .cta{ background:#fff; color:#000; font-weight:600 }
     .cta:hover{ background:rgba(255,255,255,.92) }
-    /* toque “maduro”: bordas sutis no cubo */
-    .edge{ opacity:.18 }
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="min-h-dvh flex flex-col">
     <header class="max-w-5xl mx-auto px-5 pt-6 pb-2 flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <!-- mini-cubo marca (flat) -->
+        <!-- mini marca (flat) -->
         <svg width="22" height="22" viewBox="0 0 240 240" aria-hidden="true">
           <defs>
             <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
@@ -61,6 +60,7 @@
         </svg>
         <span class="brand text-xs font-semibold">OTENZZA</span>
       </div>
+      <!-- sua versão completa fica em /beta -->
       <a href="/beta/" class="text-xs text-zinc-400 hover:text-zinc-200">/beta</a>
     </header>
 
@@ -72,12 +72,10 @@
         A private, intentional space. No feed. No vanity metrics. Just your Cube.
       </p>
 
-      <!-- Cubo 3D interativo -->
-      <section class="canvas-frame mt-8" aria-label="Interactive Otenzza Cube">
-        <canvas id="otenzza-cube"></canvas>
-      </section>
+      <!-- CUBO 3D INTERATIVO (sem moldura e sem sombra) -->
+      <canvas id="cubeCanvas" aria-label="Interactive Otenzza Cube"></canvas>
 
-      <!-- E-mail (Buttondown – troque o YOUR_USERNAME) -->
+      <!-- E-mail (troque YOUR_USERNAME pelo seu) -->
       <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
             method="post" target="_blank"
             class="mt-8 flex flex-col sm:flex-row gap-3 justify-center px-5">
@@ -97,33 +95,36 @@
     </footer>
   </div>
 
-  <!-- Three.js + OrbitControls -->
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js';
+  <!-- Three.js (clássico, estável no GitHub Pages) -->
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
 
-    const canvas = document.getElementById('otenzza-cube');
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  <script>
+    // util: ano no rodapé
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // setup básico
+    const canvas   = document.getElementById('cubeCanvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(canvas.clientWidth, canvas.clientHeight, false); // responsive via resize fn
+    renderer.setClearColor(0x000000, 0); // fundo TRANSPARENTE
 
-    const scene = new THREE.Scene();
-
-    // câmera levemente “tele” para sensação premium
-    const camera = new THREE.PerspectiveCamera(35, 16/10, 0.1, 100);
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
     camera.position.set(3.2, 2.4, 4.2);
+    scene.add(camera);
 
-    // luzes – sem sombras (look maduro, clean)
+    // luzes – sem sombras para look mais “clean”
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
     const key = new THREE.DirectionalLight(0xffffff, 0.9);
     key.position.set(3, 5, 4);
     scene.add(key);
 
-    // cubo “vidro/metal” maduro
+    // cubo “maduro”: metálico/translúcido
     const size = 1.6;
-    const geo = new THREE.BoxGeometry(size, size, size);
-    const mat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color('#214BFF'),
+    const geo  = new THREE.BoxGeometry(size, size, size);
+    const mat  = new THREE.MeshStandardMaterial({
+      color: '#214BFF',
       metalness: 0.85,
       roughness: 0.15,
       transparent: true,
@@ -132,42 +133,41 @@
     const cube = new THREE.Mesh(geo, mat);
     scene.add(cube);
 
-    // arestas sutis
+    // arestas bem discretas
     const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(geo, 20),
+      new THREE.EdgesGeometry(geo),
       new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.18 })
     );
     cube.add(edges);
 
-    // controles – só usuário move (sem auto-rotate)
-    const controls = new OrbitControls(camera, renderer.domElement);
+    // controles: usuário move (mouse/touch), sem auto-rotate
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
-    controls.enableZoom = false;
-    controls.enablePan = false;
-    controls.rotateSpeed = 0.6;
+    controls.enableZoom    = false;
+    controls.enablePan     = false;
+    controls.rotateSpeed   = 0.6;
     controls.dampingFactor = 0.06;
     controls.minPolarAngle = Math.PI * 0.15;
     controls.maxPolarAngle = Math.PI * 0.85;
 
-    // resize responsivo ao container
-    function resize(){
-      const rect = canvas.getBoundingClientRect();
-      const w = rect.width, h = rect.height;
+    // resize responsivo ao tamanho real do canvas
+    function resize() {
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
       renderer.setSize(w, h, false);
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
     }
-    window.addEventListener('resize', resize, { passive: true });
+    window.addEventListener('resize', resize, { passive:true });
     resize();
 
-    // animação
-    renderer.setAnimationLoop(() => {
+    // loop
+    function tick(){
       controls.update();
       renderer.render(scene, camera);
-    });
-
-    // util: ano no rodapé
-    document.getElementById('year').textContent = new Date().getFullYear();
+      requestAnimationFrame(tick);
+    }
+    tick();
   </script>
 </body>
 </html>
