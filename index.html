@@ -1,211 +1,167 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OTENZZA — Presence, Identity, Precision.</title>
-  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube.">
+  <title>OTENZZA — Presence. Identity. Precision.</title>
+  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+  <meta property="og:title" content="OTENZZA — Presence. Identity. Precision.">
+  <meta property="og:description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://otenzza.com">
+  <meta property="og:image" content="https://otenzza.com/logo.png">
   <link rel="icon" href="/favicon.ico" />
+
   <style>
     :root{
-      --bg:#0b0b0d; --bg2:#101015; --ink:#e7e7ea; --muted:#a0a0a6; --blue:#214BFF;
-      --maxw:1100px;
+      --bg:#0b0b0d; --fg:#e8ebf5; --muted:#9aa1b2; --accent:#214BFF;
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0;color:var(--ink);
-      background: radial-gradient(1200px 800px at 50% -10%, var(--bg2) 0%, var(--bg) 45%, #07070a 100%);
-      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
-      font: 400 15px/1.5 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Inter, "Helvetica Neue", Arial;
-      display:flex; flex-direction:column;
+      margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
+      color:var(--fg); background:var(--bg);
+      display:flex; flex-direction:column; align-items:center;
     }
-    .container{width:100%; max-width:var(--maxw); margin:0 auto; padding:0 20px}
-    header{padding:22px 0 6px}
-    .brand{display:flex; align-items:center; gap:10px; letter-spacing:.22em; font-weight:600; font-size:12px}
-    .brand svg{display:block}
-    .link-beta{color:#a7a7af; text-decoration:none; font-size:12px}
-    .link-beta:hover{color:#d8d8df}
-    main{flex:1; padding:0 0 56px}
-    .hero{ text-align:center; margin-top:8px }
-    .title{font-weight:600; letter-spacing:-0.01em; line-height:1.15;
-      font-size:32px}
-    @media (min-width:640px){ .title{font-size:40px} }
-    @media (min-width:900px){ .title{font-size:52px} }
-    .subtitle{color:#b7b7bf; max-width:880px; margin:10px auto 0}
-    /* canvas */
-    .canvas-wrap{display:flex; justify-content:center; margin:22px 0 0}
-    #cubeCanvas{
-      display:block; width:min(92vw, 720px); height:min(72vh, 520px);
-      touch-action:none; cursor:grab;
+    .wrap{width:min(1120px,92vw); margin:52px auto 28px auto}
+    header{
+      display:flex; align-items:center; justify-content:space-between; margin-bottom:28px;
     }
-    #cubeCanvas.dragging{ cursor:grabbing }
-    /* form */
-    .lead{display:flex; flex-direction:column; gap:12px; align-items:center; margin-top:28px}
-    @media (min-width:640px){ .lead{flex-direction:row; justify-content:center} }
-    .field{
-      width: min(360px, 86vw);
-      padding:14px 16px; border-radius:16px; border:1px solid rgba(255,255,255,.08);
-      background:#0f0f13; color:var(--ink); outline:none;
+    .brand{display:flex; gap:10px; align-items:center; letter-spacing:.28em; font-weight:700; font-size:12px; color:#bfc7da}
+    .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,#8fb0ff 0%,#214BFF 100%)}
+    .beta{opacity:.55; font-weight:600; margin-left:4px}
+    h1{
+      margin:0; text-align:center; font-weight:700;
+      font-size:clamp(28px,6vw,44px);
     }
-    .field:focus{ border-color:rgba(255,255,255,.22); box-shadow:0 0 0 4px rgba(255,255,255,.05) }
-    .cta{
-      padding:14px 18px; border-radius:16px; border:0; background:#fff;
-      color:#000; font-weight:600; cursor:pointer;
+    .sub{margin:10px 0 24px; text-align:center; color:var(--muted)}
+    /* Fundo pontilhado sutil */
+    .grid{
+      --s:24px;
+      background:
+        radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0/var(--s) var(--s);
+      border-radius:24px;
     }
-    .cta:hover{ background:rgba(255,255,255,.92) }
-    .fine{color:#8b8b93; font-size:11px; margin-top:8px; text-align:center}
-    footer{color:#8b8b93; font-size:12px; padding:22px 0; text-align:center}
-    /* dotted background nuance */
-    .grid-bg{
-      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 24px 24px;
+
+    /* Palco do cubo */
+    #stage{
+      width:min(86vw,560px);
+      aspect-ratio:1/1;
+      margin:24px auto 18px;
+      position:relative;
+      display:block;
     }
+    canvas#cube{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      display:block; cursor:grab; border-radius:24px;
+    }
+    canvas#cube:active{cursor:grabbing}
+
+    /* Form */
+    .form{
+      display:flex; gap:10px; justify-content:center; margin:18px 0 8px;
+      flex-wrap:wrap;
+    }
+    .input{
+      width:min(72vw,420px);
+      padding:13px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
+      background:#111217; color:var(--fg); outline:none;
+    }
+    .btn{
+      padding:13px 16px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
+      background:#fff; color:#000; font-weight:600;
+    }
+    .note{color:#80879a; text-align:center; font-size:12px}
+
+    footer{margin:36px 0 24px; color:#6d7486; font-size:12px}
   </style>
 </head>
 <body>
-  <header class="container">
-    <div style="display:flex; align-items:center; justify-content:space-between">
+  <div class="wrap">
+    <header>
       <div class="brand">
-        <!-- mini cube (flat SVG) -->
-        <svg width="22" height="22" viewBox="0 0 240 240" aria-hidden="true">
-          <defs>
-            <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
-              <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
-            </linearGradient>
-            <linearGradient id="mLeft" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#1332B8"/>
-              <stop offset="100%" stop-color="#1C2C6E"/>
-            </linearGradient>
-            <linearGradient id="mRight" x1="0" y1="0" x2="1" y2="1">
-              <stop offset="0%" stop-color="#2D5BFF"/>
-              <stop offset="100%" stop-color="#1A3DE0"/>
-            </linearGradient>
-          </defs>
-          <polygon fill="url(#mTop)"  points="120,28 205,78 120,128 35,78"/>
-          <polygon fill="url(#mLeft)" points="35,78 120,128 120,208 35,158"/>
-          <polygon fill="url(#mRight)" points="205,78 120,128 120,208 205,158"/>
-        </svg>
-        <span>OTENZZA</span>
+        <span class="dot"></span><span>OTENZZA</span><span class="beta">/beta</span>
       </div>
-      <a class="link-beta" href="/beta/">/beta</a>
+      <div style="opacity:.55; font-weight:600">/beta</div>
+    </header>
+
+    <h1>Presence. Identity. Precision.</h1>
+    <p class="sub">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
+
+    <!-- Palco com leve grid para dar textura -->
+    <div id="stage" class="grid">
+      <canvas id="cube"></canvas>
     </div>
-  </header>
 
-  <main class="container">
-    <section class="hero">
-      <h1 class="title">Presence. Identity. <span style="opacity:.95">Precision.</span></h1>
-      <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
+    <form class="form" action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank">
+      <input class="input" type="email" name="email" placeholder="your@email.com" required>
+      <button class="btn" type="submit">Reserve early access</button>
+    </form>
+    <div class="note">Founding members — limited circle.</div>
+  </div>
 
-      <div class="canvas-wrap grid-bg">
-        <canvas id="cubeCanvas" aria-label="Interactive Otenzza Cube"></canvas>
-      </div>
+  <footer>&copy; <span id="y"></span> Otenzza. All rights reserved.</footer>
 
-      <form class="lead" action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank">
-        <input class="field" type="email" name="email" required placeholder="your@email.com" />
-        <button class="cta" type="submit">Reserve early access</button>
-      </form>
-      <p class="fine">Founding members — limited circle.</p>
-    </section>
-  </main>
-
-  <footer>© <span id="year"></span> Otenzza. All rights reserved.</footer>
-
-  <!-- Three.js via ES Modules (sem avisos) -->
+  <!-- Three.js (ES Modules) -->
   <script type="module">
     import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js';
 
-    // ano
-    document.getElementById('year').textContent = new Date().getFullYear();
+    const stage   = document.getElementById('stage');
+    const canvas  = document.getElementById('cube');
 
-    const canvas   = document.getElementById('cubeCanvas');
+    // Renderer
     const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000000, 0);
 
+    // Scene & camera
     const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-    camera.position.set(3.2, 2.4, 4.2);
-    scene.add(camera);
+    const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
+    camera.position.set(3.6, 2.8, 4.2);
 
-    // luzes clean
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const key = new THREE.DirectionalLight(0xffffff, 0.9);
-    key.position.set(3, 5, 4);
-    scene.add(key);
+    // Materials (faces diferentes, tom maduro)
+    const matTop   = new THREE.MeshStandardMaterial({ color: 0x3c6aff, metalness:0.65, roughness:0.25 });
+    const matLeft  = new THREE.MeshStandardMaterial({ color: 0x1a2a63, metalness:0.6,  roughness:0.3 });
+    const matRight = new THREE.MeshStandardMaterial({ color: 0x2445ff, metalness:0.65, roughness:0.25 });
 
-    // cubo maduro sem sombra
-    const size = 1.6;
-    const geo  = new THREE.BoxGeometry(size, size, size);
-    const mat  = new THREE.MeshStandardMaterial({
-      color: '#214BFF',
-      metalness: 0.85,
-      roughness: 0.15,
-      transparent: true,
-      opacity: 0.92
-    });
-    const cube = new THREE.Mesh(geo, mat);
+    const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
+    const mats = [matRight, matLeft, matTop, matLeft, matRight, matTop];
+    const cube = new THREE.Mesh(geo, mats);
+    cube.rotation.set(0.55, -0.6, 0.22);
     scene.add(cube);
 
-    // arestas discretas
-    const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(geo),
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.18 })
-    );
-    cube.add(edges);
+    // Luzes suaves (sem sombra no “chão”)
+    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const key = new THREE.DirectionalLight(0xffffff, 0.8); key.position.set(3,4,2); scene.add(key);
+    const rim = new THREE.DirectionalLight(0x6aa2ff, 0.6); rim.position.set(-3,-1.5,-2); scene.add(rim);
 
-    // resize responsivo
+    // Controles (arrastar para girar, sem zoom)
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enableZoom = false;
+    controls.rotateSpeed = 0.9;
+
+    // Resize
     function resize(){
-      const w = canvas.clientWidth;
-      const h = canvas.clientHeight;
+      const w = stage.clientWidth, h = stage.clientHeight;
       renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      camera.updateProjectionMatrix();
+      camera.aspect = w/h; camera.updateProjectionMatrix();
     }
-    window.addEventListener('resize', resize, { passive:true });
+    window.addEventListener('resize', resize);
     resize();
 
-    // arrastar (mouse/touch) com inércia
-    let dragging = false, lastX = 0, lastY = 0, velX = 0, velY = 0;
-    const damp = 0.92;
-
-    function onDown(x, y){ dragging = true; lastX = x; lastY = y; canvas.classList.add('dragging'); }
-    function onMove(x, y){
-      if(!dragging) return;
-      const dx = (x - lastX) / 160;
-      const dy = (y - lastY) / 160;
-      lastX = x; lastY = y;
-      cube.rotation.y += dx;
-      cube.rotation.x += dy;
-      velX = dx; velY = dy;
-    }
-    function onUp(){ dragging = false; canvas.classList.remove('dragging'); }
-
-    // mouse
-    canvas.addEventListener('mousedown', e => onDown(e.clientX, e.clientY));
-    window.addEventListener('mousemove', e => onMove(e.clientX, e.clientY));
-    window.addEventListener('mouseup', onUp);
-    // touch
-    canvas.addEventListener('touchstart', e => {
-      const t = e.touches[0]; onDown(t.clientX, t.clientY);
-    }, {passive:true});
-    window.addEventListener('touchmove', e => {
-      const t = e.touches[0]; if(t) onMove(t.clientX, t.clientY);
-    }, {passive:true});
-    window.addEventListener('touchend', onUp);
-
-    // loop com inércia
+    // Loop
     function tick(){
-      if(!dragging){
-        cube.rotation.y += velX;
-        cube.rotation.x += velY;
-        velX *= damp; velY *= damp;
-      }
-      renderer.render(scene, camera);
       requestAnimationFrame(tick);
+      cube.rotation.y += 0.003;   // giro sutil contínuo
+      controls.update();
+      renderer.render(scene, camera);
     }
     tick();
+
+    // Ano no rodapé
+    document.getElementById('y').textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
