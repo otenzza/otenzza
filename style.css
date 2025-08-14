@@ -1,62 +1,45 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* ===== Otenzza custom styles ===== */
+
+/* Cubo SVG (classe aplicada no <svg class="cube3d">) */
+.cube3d{
+  width: clamp(120px, 18vw, 176px);
+  height: auto;
+  filter: drop-shadow(0 12px 28px rgba(33,75,255,0.30));
+  transform-box: fill-box;
+  transform-origin: 50% 55%;
+  animation: cubeDrift 18s ease-in-out infinite;
+}
+.cube3d:hover polygon{
+  filter: brightness(1.08);
+  transition: filter .25s ease;
+}
+@keyframes cubeDrift{
+  0%   { transform: translateY(0) rotateZ(0deg); }
+  50%  { transform: translateY(-6px) rotateZ(180deg); }
+  100% { transform: translateY(0) rotateZ(360deg); }
 }
 
-body {
-  font-family: 'Arial', sans-serif;
-  background-color: #0a0a0a;
-  color: #fff;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* Botões das faces do cubo */
+.cube-panel .face-btn{
+  transition: background-color .2s ease, border-color .2s ease, transform .15s ease, box-shadow .2s ease;
+}
+.cube-panel .face-btn:hover{
+  background-color: rgba(255,255,255,.08);
+  border-color: rgba(255,255,255,.25);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,.25), 0 4px 12px rgba(255,255,255,.05) inset;
 }
 
-h1, h2, h3 {
-  font-weight: 700;
+/* Toggle de idioma – feedback ao hover */
+#langToggle{
+  transition: border-color .2s ease, background-color .2s ease;
+}
+#langToggle:hover{
+  border-color: rgba(255,255,255,.35);
+  background-color: rgba(255,255,255,.04);
 }
 
-.cube {
-  position: relative;
-  width: 250px;
-  height: 250px;
-  transform-style: preserve-3d;
-  animation: rotateCube 10s infinite linear; /* animação de rotação */
-}
-
-.face {
-  width: 250px;
-  height: 250px;
-  position: absolute;
-  background: rgba(255, 255, 255, 0.05);
-  border: 2px solid #f4f4f1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.2rem;
-  color: white;
-  text-transform: uppercase;
-}
-
-/* Efeito suave ao carregar */
-.fade-in {
-  animation: fadeIn 1.2s ease-in-out forwards;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Animação de rotação do cubo */
-@keyframes rotateCube {
-  0% {
-    transform: rotateX(0deg) rotateY(0deg);
-  }
-  100% {
-    transform: rotateX(360deg) rotateY(360deg);
-  }
+/* Acessibilidade: reduz animações se usuário preferir */
+@media (prefers-reduced-motion: reduce){
+  .cube3d{ animation: none; }
 }
