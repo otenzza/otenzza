@@ -1,105 +1,202 @@
-html
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Otenzza</title>
-  <meta name="description" content="Otenzza — altar digital, presença e identidade."/>
+  <title>Otenzza — your altar of presence & identity</title>
+
+  <!-- OG / Social -->
+  <meta property="og:title" content="Otenzza — your altar of presence & identity" />
+  <meta property="og:description" content="Build your private Cube — Visual, Sound, Text and Vibe. No algorithm. Only presence." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://otenzza.com" />
+  <meta property="og:image" content="https://otenzza.com/logo.png" />
   <link rel="icon" href="/favicon.ico" />
+
+  <!-- Tailwind CDN (rápido p/ protótipo) -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            zinc: {
+              950: '#0b0b0d'
+            },
+            otenzza: {
+              blue: '#214BFF'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    .glass { backdrop-filter: blur(8px); background: rgba(255,255,255,0.06); }
-    .grid-bg { background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 24px 24px; }
+    /* pontilhado sutil no fundo */
+    .grid-bg {
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    /* “cubo” placeholder em CSS (substitua por imagem quando quiser) */
+    .cube {
+      width: 136px; height: 136px; position: relative; transform-style: preserve-3d;
+      animation: float 6s ease-in-out infinite;
+    }
+    .cube::before, .cube::after {
+      content: "";
+      position: absolute; inset: 0; border-radius: 12px;
+      background: radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.25), rgba(33,75,255,.9));
+      filter: blur(.2px);
+    }
+    .cube::after {
+      transform: translateZ(-16px);
+      opacity: .55;
+      background: radial-gradient(120% 120% at 70% 60%, rgba(255,255,255,.15), rgba(33,75,255,.75));
+    }
+    @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-6px) } }
   </style>
+  <noscript><style> [data-i18n]{opacity:1!important} </style></noscript>
 </head>
-<body class="min-h-screen bg-black text-zinc-100">
-  <header class="w-full sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <img src="https://placehold.co/48x48/111/FFF?text=O" alt="Otenzza" class="w-10 h-10 rounded-xl object-cover"/>
-        <span class="font-semibold tracking-widest text-sm text-zinc-300">OTENZZA</span>
-      </div>
-      <nav class="hidden sm:flex items-center gap-6 text-sm text-zinc-300">
-        <a href="#manifesto" class="hover:text-white">Manifesto</a>
-        <a href="#features" class="hover:text-white">Faces do Cubo</a>
-        <a href="#join" class="hover:text-white">Entrar</a>
-      </nav>
+
+<body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg">
+  <!-- Top bar -->
+  <header class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-xl bg-otenzza-blue/80 shadow-lg shadow-otenzza-blue/20"></div>
+      <span class="tracking-widest text-sm font-semibold">OTENZZA</span>
     </div>
+
+    <!-- Lang toggle -->
+    <button id="langToggle"
+            class="text-xs px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/30 transition">
+      PT-BR
+    </button>
   </header>
 
-  <section class="max-w-6xl mx-auto px-4 pt-16 pb-20">
-    <div class="grid md:grid-cols-2 gap-10 items-center">
+  <!-- Hero -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+    <section class="grid md:grid-cols-2 gap-10 items-center">
       <div>
-        <h1 class="text-4xl md:text-6xl font-bold leading-tight">Seu <span class="text-zinc-400">altar digital</span> de presença e identidade.</h1>
-        <p class="mt-5 text-zinc-300/90 leading-relaxed">Otenzza é um espaço fechado onde você constrói um cubo com quatro faces — Visualidade, Som, Texto e Vibe — e abre portas secretas para conexões reais.</p>
-        <div class="mt-8 flex flex-col sm:flex-row gap-3">
-          <a href="#join" class="px-5 py-3 rounded-2xl bg-white/90 text-black font-medium hover:bg-white">Quero meu Cubo</a>
-          <a href="#manifesto" class="px-5 py-3 rounded-2xl border border-zinc-700 hover:border-zinc-500">Ler manifesto</a>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl leading-tight font-semibold">
+          <span data-i18n="hero_title_1">Your digital altar</span><br />
+          <span data-i18n="hero_title_2">of presence & identity.</span>
+        </h1>
+
+        <p class="mt-5 text-zinc-300 max-w-xl" data-i18n="hero_sub">
+          Otenzza is a private space where you build a Cube with four faces — Visual, Sound, Text and Vibe — and open secret doors for real connections.
+        </p>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <a href="#join"
+             class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90 transition"
+             data-i18n="cta_primary">Get my Cube</a>
+          <a href="#manifesto"
+             class="px-5 py-3 rounded-2xl border border-white/15 hover:border-white/35 transition"
+             data-i18n="cta_secondary">Read the manifesto</a>
         </div>
       </div>
-      <div class="relative grid-bg rounded-3xl overflow-hidden">
-        <div class="aspect-[4/3] w-full grid place-items-center">
-          <div class="glass rounded-3xl p-8 border border-white/10">
-            <p class="text-sm text-zinc-300">Prévia do Cubo</p>
-            <div class="mt-4 grid grid-cols-2 gap-3">
-              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Visual</div>
-              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Som</div>
-              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Texto</div>
-              <div class="h-24 bg-zinc-900/60 rounded-xl border border-white/5 grid place-items-center">Vibe</div>
-            </div>
+
+      <div class="md:justify-self-end">
+        <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm w-fit">
+          <div class="cube mx-auto"></div>
+          <div class="mt-5 grid grid-cols-2 gap-3 text-center">
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Visual</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Sound</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Text</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10">Vibe</div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section id="manifesto" class="max-w-4xl mx-auto px-4 py-16 border-t border-white/10">
-    <h2 class="text-2xl md:text-3xl font-semibold">Manifesto</h2>
-    <p class="mt-4 text-zinc-300/90 leading-relaxed">Sem algoritmo, sem mendigar atenção. Otenzza é presença, rito e estética. Aqui, cada elemento é uma chave que abre portas: conexões discretas, encontros certos e impacto real.</p>
-  </section>
+    <!-- Manifesto curto -->
+    <section id="manifesto" class="mt-20 max-w-3xl">
+      <h2 class="text-2xl font-semibold mb-3" data-i18n="man_title">Why Otenzza?</h2>
+      <p class="text-zinc-300" data-i18n="man_p1">
+        Social feeds are designed to trap your attention. Otenzza is different: no infinite scroll, no vanity metrics — only intentional presence.
+      </p>
+      <p class="text-zinc-300 mt-3" data-i18n="man_p2">
+        Start small with your Cube. Keep what matters. Unlock private doors. Be seen for who you are.
+      </p>
+    </section>
 
-  <section id="features" class="max-w-6xl mx-auto px-4 py-16 border-t border-white/10">
-    <h2 class="text-2xl md:text-3xl font-semibold">Faces do Cubo</h2>
-    <div class="mt-8 grid md:grid-cols-4 gap-4">
-      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
-        <h3 class="font-medium">Visualidade</h3>
-        <p class="mt-2 text-sm text-zinc-400">Imagens e artefatos que constroem sua presença.</p>
+    <!-- Join / lead capture placeholder -->
+    <section id="join" class="mt-16 max-w-xl">
+      <div class="rounded-3xl p-5 bg-white/5 border border-white/10">
+        <h3 class="text-lg font-medium" data-i18n="join_title">Early access — Founding Members</h3>
+        <p class="text-sm text-zinc-300 mt-1" data-i18n="join_sub">
+          Be part of the first circle and help shape Otenzza. Limited spots.
+        </p>
+        <!-- Substitua action pelo seu provedor (ex. Buttondown/Brevo/Stripe checkout) -->
+        <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
+              method="post" target="_blank" class="mt-4 flex flex-col sm:flex-row gap-3">
+          <input type="email" name="email" required
+                 class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10
+                        focus:outline-none focus:ring-2 focus:ring-white/20"
+                 placeholder="you@email.com" />
+          <button class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90"
+                  data-i18n="join_btn">Reserve my invite</button>
+        </form>
       </div>
-      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
-        <h3 class="font-medium">Som</h3>
-        <p class="mt-2 text-sm text-zinc-400">Beats, vozes, texturas. Sua assinatura sonora.</p>
-      </div>
-      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
-        <h3 class="font-medium">Texto</h3>
-        <p class="mt-2 text-sm text-zinc-400">Anotações, códigos e palavras que importam.</p>
-      </div>
-      <div class="p-5 rounded-2xl bg-zinc-950 border border-white/5">
-        <h3 class="font-medium">Vibe</h3>
-        <p class="mt-2 text-sm text-zinc-400">Clima, rituais e chaves de acesso.</p>
-      </div>
-    </div>
-  </section>
+    </section>
+  </main>
 
-  <section id="join" class="max-w-3xl mx-auto px-4 py-16 border-t border-white/10">
-    <h2 class="text-2xl md:text-3xl font-semibold">Entre na lista</h2>
-    <p class="mt-2 text-zinc-300/90">Receba o convite quando liberarmos os primeiros cubos.</p>
-    <form class="mt-6 flex flex-col sm:flex-row gap-3" onsubmit="event.preventDefault(); alert('Recebido. Em breve entraremos em contato.');">
-      <input type="email" required placeholder="seu@email.com" class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/20"/>
-      <button class="px-5 py-3 rounded-2xl bg-white/90 text-black font-medium hover:bg-white">Quero o convite</button>
-    </form>
-  </section>
-
-  <footer class="max-w-6xl mx-auto px-4 py-10 text-sm text-zinc-500 border-t border-white/10">
-    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-      <p>© <span id="y"></span> Otenzza. Todos os direitos reservados.</p>
-      <div class="flex items-center gap-4">
-        <a href="#" class="hover:text-zinc-300">Termos</a>
-        <a href="#" class="hover:text-zinc-300">Privacidade</a>
-      </div>
+  <footer class="border-t border-white/5 py-8 mt-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-xs text-zinc-400 flex items-center justify-between">
+      <span>&copy; <span id="year"></span> Otenzza. All rights reserved.</span>
+      <a href="mailto:hello@otenzza.com" class="hover:text-zinc-200">hello@otenzza.com</a>
     </div>
   </footer>
 
-  <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
+  <!-- i18n: EN default + PT-BR -->
+  <script>
+    const dict = {
+      en: {
+        hero_title_1: "Your digital altar",
+        hero_title_2: "of presence & identity.",
+        hero_sub: "Otenzza is a private space where you build a Cube with four faces — Visual, Sound, Text and Vibe — and open secret doors for real connections.",
+        cta_primary: "Get my Cube",
+        cta_secondary: "Read the manifesto",
+        man_title: "Why Otenzza?",
+        man_p1: "Social feeds are designed to trap your attention. Otenzza is different: no infinite scroll, no vanity metrics — only intentional presence.",
+        man_p2: "Start small with your Cube. Keep what matters. Unlock private doors. Be seen for who you are.",
+        join_title: "Early access — Founding Members",
+        join_sub: "Be part of the first circle and help shape Otenzza. Limited spots.",
+        join_btn: "Reserve my invite"
+      },
+      pt: {
+        hero_title_1: "Seu altar digital",
+        hero_title_2: "de presença e identidade.",
+        hero_sub: "Otenzza é um espaço fechado onde você constrói um Cubo com quatro faces — Visual, Som, Texto e Vibe — e abre portas secretas para conexões reais.",
+        cta_primary: "Quero meu Cubo",
+        cta_secondary: "Ler o manifesto",
+        man_title: "Por que a Otenzza?",
+        man_p1: "As redes sociais foram feitas para prender sua atenção. A Otenzza é diferente: sem feed infinito, sem métricas de vaidade — só presença intencional.",
+        man_p2: "Comece pequeno com seu Cubo. Guarde o que importa. Abra portas privadas. Seja visto por quem você é.",
+        join_title: "Acesso antecipado — Membros Fundadores",
+        join_sub: "Faça parte do primeiro círculo e ajude a moldar a Otenzza. Vagas limitadas.",
+        join_btn: "Garantir meu convite"
+      }
+    };
+
+    const els = document.querySelectorAll("[data-i18n]");
+    const btn = document.getElementById("langToggle");
+    let current = "en";
+
+    function applyLang(lang) {
+      els.forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.textContent = dict[lang][key] || el.textContent;
+      });
+      btn.textContent = (lang === "en") ? "PT-BR" : "EN";
+      document.documentElement.lang = (lang === "en") ? "en" : "pt-BR";
+      current = lang;
+    }
+
+    btn.addEventListener("click", () => applyLang(current === "en" ? "pt" : "en"));
+    applyLang("en");
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
