@@ -1,97 +1,63 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>OTENZZA — Presence. Identity. Precision.</title>
-  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube."/>
   <meta property="og:title" content="OTENZZA — Presence. Identity. Precision.">
   <meta property="og:description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://otenzza.com">
   <meta property="og:image" content="https://otenzza.com/logo.png">
-  <link rel="icon" href="/favicon.ico" />
+  <link rel="icon" href="/favicon.ico"/>
 
   <style>
-    :root{
-      --bg:#0b0b0d; --fg:#e8ebf5; --muted:#9aa1b2; --accent:#214BFF;
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;
-      color:var(--fg); background:var(--bg);
-      display:flex; flex-direction:column; align-items:center;
-    }
-    .wrap{width:min(1120px,92vw); margin:52px auto 28px auto}
-    header{
-      display:flex; align-items:center; justify-content:space-between; margin-bottom:28px;
-    }
-    .brand{display:flex; gap:10px; align-items:center; letter-spacing:.28em; font-weight:700; font-size:12px; color:#bfc7da}
-    .dot{width:10px; height:10px; border-radius:3px; background:linear-gradient(135deg,#8fb0ff 0%,#214BFF 100%)}
-    .beta{opacity:.55; font-weight:600; margin-left:4px}
-    h1{
-      margin:0; text-align:center; font-weight:700;
-      font-size:clamp(28px,6vw,44px);
-    }
-    .sub{margin:10px 0 24px; text-align:center; color:var(--muted)}
-    /* Fundo pontilhado sutil */
-    .grid{
-      --s:24px;
-      background:
-        radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0/var(--s) var(--s);
-      border-radius:24px;
-    }
-
-    /* Palco do cubo */
-    #stage{
-      width:min(86vw,560px);
-      aspect-ratio:1/1;
-      margin:24px auto 18px;
-      position:relative;
-      display:block;
-    }
-    canvas#cube{
-      position:absolute; inset:0;
-      width:100%; height:100%;
-      display:block; cursor:grab; border-radius:24px;
-    }
+    :root{--bg:#0b0b0d;--fg:#e8ebf5;--muted:#9aa1b2;--accent:#214BFF}
+    *{box-sizing:border-box} html,body{height:100%}
+    body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;color:var(--fg);background:var(--bg);display:flex;flex-direction:column;align-items:center}
+    .wrap{width:min(1120px,92vw);margin:52px auto 28px}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
+    .brand{display:flex;gap:10px;align-items:center;letter-spacing:.28em;font-weight:700;font-size:12px;color:#bfc7da}
+    .dot{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#8fb0ff 0%,#214BFF 100%)}
+    .beta{opacity:.55;font-weight:600;margin-left:4px}
+    h1{margin:0;text-align:center;font-weight:700;font-size:clamp(28px,6vw,44px)}
+    .sub{margin:10px 0 24px;text-align:center;color:var(--muted)}
+    .grid{--s:24px;background:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0/var(--s) var(--s);border-radius:24px}
+    #stage{width:min(86vw,560px);aspect-ratio:1/1;margin:24px auto 18px;position:relative;display:block}
+    canvas#cube{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;border-radius:24px}
     canvas#cube:active{cursor:grabbing}
+    .form{display:flex;gap:10px;justify-content:center;margin:18px 0 8px;flex-wrap:wrap}
+    .input{width:min(72vw,420px);padding:13px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#111217;color:var(--fg);outline:none}
+    .btn{padding:13px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#fff;color:#000;font-weight:600}
+    .note{color:#80879a;text-align:center;font-size:12px}
+    footer{margin:36px 0 24px;color:#6d7486;font-size:12px}
 
-    /* Form */
-    .form{
-      display:flex; gap:10px; justify-content:center; margin:18px 0 8px;
-      flex-wrap:wrap;
-    }
-    .input{
-      width:min(72vw,420px);
-      padding:13px 14px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
-      background:#111217; color:var(--fg); outline:none;
-    }
-    .btn{
-      padding:13px 16px; border-radius:14px; border:1px solid rgba(255,255,255,.12);
-      background:#fff; color:#000; font-weight:600;
-    }
-    .note{color:#80879a; text-align:center; font-size:12px}
-
-    footer{margin:36px 0 24px; color:#6d7486; font-size:12px}
+    /* ===== CSS Cube fallback (quando WebGL não está disponível) ===== */
+    .css-cube-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:900px}
+    .css-cube{width:62%;max-width:420px;aspect-ratio:1/1;position:relative;transform-style:preserve-3d;transition:transform .12s linear}
+    .css-face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
+    .css-face.top{transform:rotateX(90deg) translateZ(calc(50%));background:linear-gradient(135deg,#7ea2ff,#214BFF)}
+    .css-face.bottom{transform:rotateX(-90deg) translateZ(calc(50%));background:#141723}
+    .css-face.left{transform:rotateY(-90deg) translateZ(calc(50%));background:#1a2a63}
+    .css-face.right{transform:rotateY(90deg) translateZ(calc(50%));background:#2445ff}
+    .css-face.front{transform:translateZ(calc(50%));background:#233170}
+    .css-face.back{transform:rotateY(180deg) translateZ(calc(50%));background:#101427}
   </style>
 </head>
 <body>
   <div class="wrap">
     <header>
-      <div class="brand">
-        <span class="dot"></span><span>OTENZZA</span><span class="beta">/beta</span>
-      </div>
-      <div style="opacity:.55; font-weight:600">/beta</div>
+      <div class="brand"><span class="dot"></span><span>OTENZZA</span><span class="beta">/beta</span></div>
+      <div style="opacity:.55;font-weight:600">/beta</div>
     </header>
 
     <h1>Presence. Identity. Precision.</h1>
     <p class="sub">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
 
-    <!-- Palco com leve grid para dar textura -->
     <div id="stage" class="grid">
-      <canvas id="cube"></canvas>
+      <canvas id="cube"></canvas> <!-- se WebGL ok, usamos este -->
+      <!-- fallback CSS é injetado via JS se WebGL falhar -->
     </div>
 
     <form class="form" action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank">
@@ -100,68 +66,108 @@
     </form>
     <div class="note">Founding members — limited circle.</div>
   </div>
-
   <footer>&copy; <span id="y"></span> Otenzza. All rights reserved.</footer>
 
-  <!-- Three.js (ES Modules) -->
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.158.0/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js';
-
-    const stage   = document.getElementById('stage');
-    const canvas  = document.getElementById('cube');
-
-    // Renderer
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-    // Scene & camera
-    const scene  = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
-    camera.position.set(3.6, 2.8, 4.2);
-
-    // Materials (faces diferentes, tom maduro)
-    const matTop   = new THREE.MeshStandardMaterial({ color: 0x3c6aff, metalness:0.65, roughness:0.25 });
-    const matLeft  = new THREE.MeshStandardMaterial({ color: 0x1a2a63, metalness:0.6,  roughness:0.3 });
-    const matRight = new THREE.MeshStandardMaterial({ color: 0x2445ff, metalness:0.65, roughness:0.25 });
-
-    const geo = new THREE.BoxGeometry(1.8, 1.8, 1.8);
-    const mats = [matRight, matLeft, matTop, matLeft, matRight, matTop];
-    const cube = new THREE.Mesh(geo, mats);
-    cube.rotation.set(0.55, -0.6, 0.22);
-    scene.add(cube);
-
-    // Luzes suaves (sem sombra no “chão”)
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const key = new THREE.DirectionalLight(0xffffff, 0.8); key.position.set(3,4,2); scene.add(key);
-    const rim = new THREE.DirectionalLight(0x6aa2ff, 0.6); rim.position.set(-3,-1.5,-2); scene.add(rim);
-
-    // Controles (arrastar para girar, sem zoom)
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.enableZoom = false;
-    controls.rotateSpeed = 0.9;
-
-    // Resize
-    function resize(){
-      const w = stage.clientWidth, h = stage.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w/h; camera.updateProjectionMatrix();
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Loop
-    function tick(){
-      requestAnimationFrame(tick);
-      cube.rotation.y += 0.003;   // giro sutil contínuo
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    tick();
-
-    // Ano no rodapé
+  <script>
     document.getElementById('y').textContent = new Date().getFullYear();
+
+    function hasWebGL(){
+      try{
+        const c=document.createElement('canvas');
+        return !!(window.WebGL2RenderingContext && c.getContext('webgl2')) || !!c.getContext('webgl');
+      }catch(e){return false;}
+    }
+
+    function mountCssCube(){
+      const stage = document.getElementById('stage');
+      const wrap = document.createElement('div');
+      wrap.className = 'css-cube-wrap';
+      const cube = document.createElement('div');
+      cube.className = 'css-cube';
+      ['front','back','left','right','top','bottom'].forEach(cls=>{
+        const f=document.createElement('div'); f.className='css-face '+cls; cube.appendChild(f);
+      });
+      wrap.appendChild(cube); stage.appendChild(wrap);
+
+      let rx=-22, ry=-28; // ângulo inicial maduro
+      cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      let dragging=false, lx=0, ly=0;
+
+      const onDown = e=>{dragging=true; const p=e.touches?e.touches[0]:e; lx=p.clientX; ly=p.clientY;};
+      const onMove = e=>{
+        if(!dragging) return;
+        const p=e.touches?e.touches[0]:e;
+        const dx=p.clientX-lx, dy=p.clientY-ly;
+        lx=p.clientX; ly=p.clientY;
+        ry += dx*0.25; rx -= dy*0.25;
+        rx=Math.max(-85,Math.min(85,rx));
+        cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      };
+      const onUp = ()=> dragging=false;
+
+      wrap.addEventListener('mousedown', onDown);
+      window.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      wrap.addEventListener('touchstart', onDown,{passive:true});
+      window.addEventListener('touchmove', onMove,{passive:true});
+      window.addEventListener('touchend', onUp);
+    }
+
+    async function mountThree(){
+      // carrega módulos ES de forma dinâmica para não quebrar CSP de páginas antigas
+      const [{default:THREE}, {OrbitControls}] = await Promise.all([
+        import('https://unpkg.com/three@0.158.0/build/three.module.js'),
+        import('https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js')
+      ]);
+
+      const stage=document.getElementById('stage');
+      const canvas=document.getElementById('cube');
+      const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(28,1,0.1,100);
+      camera.position.set(3.6,2.8,4.2);
+
+      const matTop   = new THREE.MeshStandardMaterial({ color:0x3c6aff, metalness:0.65, roughness:0.25 });
+      const matLeft  = new THREE.MeshStandardMaterial({ color:0x1a2a63, metalness:0.6,  roughness:0.3 });
+      const matRight = new THREE.MeshStandardMaterial({ color:0x2445ff, metalness:0.65, roughness:0.25 });
+      const geo=new THREE.BoxGeometry(1.8,1.8,1.8);
+      const mats=[matRight,matLeft,matTop,matLeft,matRight,matTop];
+      const cube=new THREE.Mesh(geo,mats);
+      cube.rotation.set(0.55,-0.6,0.22);
+      scene.add(cube);
+
+      scene.add(new THREE.AmbientLight(0xffffff,0.6));
+      const key=new THREE.DirectionalLight(0xffffff,0.8); key.position.set(3,4,2); scene.add(key);
+      const rim=new THREE.DirectionalLight(0x6aa2ff,0.6); rim.position.set(-3,-1.5,-2); scene.add(rim);
+
+      const controls=new OrbitControls(camera,renderer.domElement);
+      controls.enableDamping=true; controls.enableZoom=false; controls.rotateSpeed=0.9;
+
+      function resize(){
+        const w=stage.clientWidth, h=stage.clientHeight;
+        renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
+      }
+      window.addEventListener('resize', resize); resize();
+
+      function tick(){
+        requestAnimationFrame(tick);
+        cube.rotation.y += 0.003;
+        controls.update();
+        renderer.render(scene,camera);
+      }
+      tick();
+    }
+
+    (async ()=>{
+      if(hasWebGL()){
+        try{ await mountThree(); }
+        catch(e){ console.warn('WebGL disponível, mas falhou ao montar Three.js. Usando fallback.', e); mountCssCube(); }
+      }else{
+        mountCssCube();
+      }
+    })();
   </script>
 </body>
 </html>
