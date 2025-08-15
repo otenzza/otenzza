@@ -3,221 +3,221 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>OTENZZA — Presence. Identity. Precision.</title>
+
+  <title>Otenzza — your altar of presence & identity</title>
   <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+
+  <!-- OG / Social -->
+  <meta property="og:title" content="Otenzza — your altar of presence & identity" />
+  <meta property="og:description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://otenzza.com" />
+  <meta property="og:image" content="https://otenzza.com/logo.png" />
   <link rel="icon" href="/favicon.ico" />
 
-  <!-- Tailwind (ok p/ protótipo) -->
+  <!-- Tailwind (ok para protótipo; em produção, usar build/CLI) -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={theme:{extend:{colors:{zinc:{950:'#0b0b0d'}, otenzza:{blue:'#214BFF'}}}}}</script>
-
-  <!-- Import map para módulos ES do Three.js -->
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
-      "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
-    }
-  }
-  </script>
 
   <style>
     /* Fundo pontilhado sutil */
-    .grid-bg {
+    .grid-bg{
       background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-size: 26px 26px;
     }
+    /* Palco do cubo (sem bordas/molduras) */
+    #cubeWrap{
+      width: min(900px, 92vw);
+      height: clamp(260px, 52vh, 560px); /* menor no mobile */
+      margin-inline: auto;
+    }
+    #stage, #css-fallback{ width:100%; height:100%; }
+    #stage canvas{ display:block; border:none; outline:none; background:transparent; }
 
-    /* Área do stage (WebGL) */
-    #stage {
-      position: relative;
-      width: min(88vw, 960px);
-      height: min(62vh, 520px);
+    /* Fallback CSS (aparece se WebGL/Three falhar) */
+    #cssCube{
+      width: 200px; height: 200px;
       margin: 0 auto;
-      border-radius: 24px;
-      overflow: hidden;
+      transform-style: preserve-3d;
+      cursor: grab;
+      animation: float 6s ease-in-out infinite alternate;
     }
-
-    /* ===== CSS Cube fallback (quando WebGL não subir) ===== */
-    #css-fallback { display: none; }
-    .css-cube-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:1000px}
-    .css-cube{
-      --u: min(62vmin, 420px);
-      width: var(--u); height: var(--u);
-      position:relative; transform-style:preserve-3d; transition:transform .1s linear;
-      will-change: transform;
+    #cssCube .face{
+      position:absolute; inset:0;
+      background: linear-gradient(160deg, #2a3cff 0%, #1221a8 100%);
+      border-radius: 18px;
+      opacity:.92;
+      transform: translateZ(0px) rotateX(0deg) rotateY(0deg);
+      box-shadow: 0 18px 60px rgba(21,35,255,.22);
     }
-    .css-face{
-      position:absolute; width:100%; height:100%;
-      border-radius:18px; backface-visibility:hidden;
-      box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
+    @keyframes float{
+      from{ transform: rotateX(10deg) rotateY(-18deg) translateY(0) }
+      to  { transform: rotateX(16deg) rotateY(12deg)  translateY(-6px) }
     }
-    .css-face.front  { transform: translateZ(calc(var(--u) / 2));              background:#233170; }
-    .css-face.back   { transform: rotateY(180deg) translateZ(calc(var(--u) / 2)); background:#101427; }
-    .css-face.right  { transform: rotateY( 90deg) translateZ(calc(var(--u) / 2)); background:#2445ff; }
-    .css-face.left   { transform: rotateY(-90deg) translateZ(calc(var(--u) / 2)); background:#1a2a63; }
-    .css-face.top    { transform: rotateX( 90deg) translateZ(calc(var(--u) / 2)); background:linear-gradient(135deg,#7ea2ff,#214BFF); }
-    .css-face.bottom { transform: rotateX(-90deg) translateZ(calc(var(--u) / 2)); background:#141723; }
-
-    /* Botão “beta” discreto */
-    .badge { font-size:.72rem; letter-spacing:.08em }
   </style>
 </head>
-<body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg">
-  <!-- Top bar minimalista -->
-  <header class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <span class="inline-block w-2.5 h-2.5 rounded-full bg-otenzza-blue"></span>
-      <span class="tracking-widest text-xs font-semibold">OTENZZA</span>
+<body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg antialiased">
+
+  <!-- Header minimalista -->
+  <header class="pt-6 pb-2">
+    <div class="max-w-6xl mx-auto px-5 text-center">
+      <div class="inline-flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+        <span class="tracking-[0.28em] text-xs sm:text-[13px] font-semibold text-zinc-200">OTENZZA</span>
+      </div>
     </div>
-    <span class="badge text-zinc-400">/ beta</span>
   </header>
 
-  <!-- Hero -->
-  <main class="max-w-6xl mx-auto px-5 pt-6 pb-16">
-    <section class="text-center">
-      <h1 class="text-3xl sm:text-5xl font-semibold">Presence. Identity. Precision.</h1>
-      <p class="text-zinc-400 mt-3">
-        A private, intentional space. No feed. No vanity metrics. Just your Cube.
-      </p>
-    </section>
+  <!-- Hero enxuto -->
+  <main class="max-w-6xl mx-auto px-5">
+    <!-- Título discreto (opcional; remova se quiser só a marca) -->
+    <div class="text-center mt-1 mb-5">
+      <h1 class="text-[28px] sm:text-[36px] font-semibold">Presence. Identity. Precision.</h1>
+      <p class="mt-2 text-zinc-400 text-sm">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
+    </div>
 
-    <!-- STAGE do cubo -->
-    <section class="mt-8">
-      <div id="stage" class="bg-black/10 border border-white/10 backdrop-blur-sm"></div>
+    <!-- Palco do cubo (sem moldura) -->
+    <section id="cubeWrap" class="relative">
+      <div id="stage"></div>
 
-      <!-- Fallback CSS cube (aparece só se WebGL falhar) -->
-      <div id="css-fallback">
-        <div class="css-cube-wrap">
-          <div class="css-cube" id="cssCube">
-            <div class="css-face front"></div>
-            <div class="css-face back"></div>
-            <div class="css-face right"></div>
-            <div class="css-face left"></div>
-            <div class="css-face top"></div>
-            <div class="css-face bottom"></div>
-          </div>
+      <!-- Fallback (só aparece se o script abaixo não conseguir montar o Three) -->
+      <div id="css-fallback" style="display:none">
+        <div id="cssCube" aria-hidden="true">
+          <div class="face"></div>
         </div>
       </div>
     </section>
 
-    <!-- Lead -->
-    <section class="mt-8 flex items-center justify-center gap-3">
-      <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank" class="flex w-full max-w-xl gap-3">
+    <!-- Lead → e-mail + botão menores -->
+    <section class="mt-6 mb-14">
+      <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
+            method="post" target="_blank"
+            class="mx-auto w-full max-w-xl flex gap-2">
         <input type="email" name="email" required
-               class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/15"
+               class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10
+                      text-sm placeholder:zinc-500 focus:outline-none focus:ring-2 focus:ring-white/15"
                placeholder="your@email.com" />
-        <button class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90">
+        <button class="px-4 sm:px-5 py-3 rounded-2xl bg-white text-black text-sm font-medium hover:bg-white/90">
           Reserve early access
         </button>
       </form>
+      <p class="mt-2 text-center text-[11px] text-zinc-500">Founding members — limited circle.</p>
     </section>
-
-    <p class="text-center text-xs text-zinc-500 mt-3">Founding members — limited circle.</p>
   </main>
 
-  <!-- ===== WebGL + Fallback ===== -->
+  <!-- ===== Three.js (ESM) + montagem do cubo ===== -->
   <script type="module">
-    const stage = document.getElementById('stage');
-    const fallback = document.getElementById('css-fallback');
+    // Marca para sabermos se deu certo
+    window.__CUBE_OK = false;
 
-    // Tenta montar o Three. Se falhar por qualquer motivo, ativa o fallback CSS.
-    (async function mount() {
+    // Checa capacidades mínimas
+    const webglOK = (() => {
       try {
-        await mountThree();
-        console.log('WebGL OK — Three.js rodando');
-      } catch (err) {
-        console.warn('WebGL disponível, mas falhou ao montar Three.js. Usando fallback.', err);
-        stage.style.display = 'none';
-        fallback.style.display = 'block';
-        mountCssCube();
-      }
+        const canvas = document.createElement('canvas');
+        return !!(window.WebGLRenderingContext &&
+                  (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+      } catch { return false; }
     })();
 
-    async function mountThree(){
-      const THREE = await import('three');
-      const { OrbitControls } = await import('three/addons/controls/OrbitControls.js');
-
-      // Renderer
-      const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      renderer.setSize(stage.clientWidth, stage.clientHeight);
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      stage.appendChild(renderer.domElement);
-
-      // Cena + câmera
-      const scene = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(28, stage.clientWidth/stage.clientHeight, 0.1, 100);
-      camera.position.set(4.2, 2.8, 6.7);
-      scene.add(camera);
-
-      // Luzes suaves
-      const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3,4,6); scene.add(key);
-      const rim = new THREE.DirectionalLight(0x214BFF, 0.7); rim.position.set(-4,2,-3); scene.add(rim);
-      scene.add(new THREE.AmbientLight(0x6b7280, 0.35));
-
-      // Cubo “premium”: material físico, azul profundo
-      const geo = new THREE.BoxGeometry(2,2,2, 1,1,1);
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: 0x214BFF,
-        metalness: 0.15,
-        roughness: 0.25,
-        clearcoat: 0.6,
-        clearcoatRoughness: 0.2,
-        sheen: 0.0,
-        envMapIntensity: 0.4
-      });
-      const cube = new THREE.Mesh(geo, mat);
-      cube.rotation.set(0.35, 0.55, 0);
-      scene.add(cube);
-
-      // Controles (mouse/touch)
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.enablePan = false;
-      controls.minDistance = 4; controls.maxDistance = 12;
-
-      // Resize
-      addEventListener('resize', () => {
-        const w = stage.clientWidth, h = stage.clientHeight;
-        renderer.setSize(w, h);
-        camera.aspect = w/h; camera.updateProjectionMatrix();
-      });
-
-      // Loop
-      const clock = new THREE.Clock();
-      (function animate(){
-        const t = clock.getElapsedTime();
-        cube.rotation.y += 0.0025;
-        controls.update();
-        renderer.render(scene, camera);
-        requestAnimationFrame(animate);
-      })();
+    if (!webglOK) {
+      document.getElementById('css-fallback').style.display = 'block';
+      throw new Error('WebGL not available – showing CSS fallback.');
     }
 
-    // Fallback: cubo CSS interativo (arrasta = gira)
-    function mountCssCube(){
-      const cube = document.getElementById('cssCube');
-      let sx=0, sy=0, rx=-18, ry=22, dragging=false;
+    // Importa Three em ES Modules (versão estável)
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
-      const apply = ()=> cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-      apply();
+    // Monta cena
+    const wrap = document.getElementById('stage');
+    const scene = new THREE.Scene();
+    scene.background = null;
 
-      const onDown = e => { dragging=true; sx= (e.touches?.[0]?.clientX ?? e.clientX); sy=(e.touches?.[0]?.clientY ?? e.clientY); };
-      const onMove = e => {
-        if(!dragging) return;
-        const x=(e.touches?.[0]?.clientX ?? e.clientX), y=(e.touches?.[0]?.clientY ?? e.clientY);
-        ry += (x-sx)*0.2; rx -= (y-sy)*0.2; sx=x; sy=y; apply();
-      };
-      const onUp = ()=> dragging=false;
+    // Camera
+    const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(0, 0.4, 4);
 
-      cube.addEventListener('mousedown', onDown);
-      cube.addEventListener('touchstart', onDown, {passive:true});
-      window.addEventListener('mousemove', onMove, {passive:false});
-      window.addEventListener('touchmove', onMove, {passive:false});
-      window.addEventListener('mouseup', onUp);
-      window.addEventListener('touchend', onUp);
+    // Renderer
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    wrap.appendChild(renderer.domElement);
+
+    // Luzes premium
+    const key = new THREE.DirectionalLight(0xffffff, 1.05); key.position.set(2, 3, 4);
+    const fill = new THREE.DirectionalLight(0x3b60ff, 0.5); fill.position.set(-3, 2, -2);
+    const rim = new THREE.DirectionalLight(0x1a2aff, 0.8); rim.position.set(-2, -3, 3);
+    const amb = new THREE.AmbientLight(0x2a2a35, 0.8);
+    scene.add(key, fill, rim, amb);
+
+    // Cubo
+    const geo = new THREE.BoxGeometry(1.6, 1.6, 1.6);
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x1b35ff,
+      roughness: 0.28,
+      metalness: 0.15,
+      envMapIntensity: 0.8
+    });
+    const cube = new THREE.Mesh(geo, mat);
+    scene.add(cube);
+
+    // Resize responsivo ao container
+    function resize(){
+      const rect = wrap.getBoundingClientRect();
+      renderer.setSize(rect.width, rect.height, false);
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
     }
+    window.addEventListener('resize', resize, { passive:true });
+    resize();
+
+    // Interação: arrastar para rotacionar
+    let dragging = false, lastX=0, lastY=0, vx=0, vy=0;
+    const damp = 0.94;
+
+    function onDown(e){ dragging=true; const p = point(e); lastX=p.x; lastY=p.y; wrap.style.cursor='grabbing'; }
+    function onUp(){ dragging=false; wrap.style.cursor='grab'; }
+    function onMove(e){
+      if(!dragging) return;
+      const p = point(e);
+      vx = (p.x - lastX) * 0.008;
+      vy = (p.y - lastY) * 0.008;
+      lastX = p.x; lastY = p.y;
+    }
+    function point(e){ return 'touches' in e ? { x:e.touches[0].clientX, y:e.touches[0].clientY } : { x:e.clientX, y:e.clientY }; }
+
+    wrap.addEventListener('mousedown', onDown);
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('mousemove', onMove, { passive:true });
+
+    wrap.addEventListener('touchstart', onDown, { passive:true });
+    window.addEventListener('touchend', onUp, { passive:true });
+    window.addEventListener('touchmove', onMove, { passive:true });
+
+    // Loop
+    function tick(){
+      cube.rotation.y += vx;
+      cube.rotation.x += vy;
+      vx *= damp; vy *= damp;
+      renderer.render(scene, camera);
+      requestAnimationFrame(tick);
+    }
+    tick();
+
+    // Sinaliza OK (para não mostrar fallback)
+    window.__CUBE_OK = true;
   </script>
+
+  <!-- Se o módulo acima não montar em ~800ms, revela o fallback CSS -->
+  <script>
+    setTimeout(() => {
+      if (!window.__CUBE_OK) {
+        document.getElementById('css-fallback').style.display = 'block';
+      }
+    }, 800);
+  </script>
+
+  <!-- Rodapé bem discreto -->
+  <footer class="pb-6 text-center">
+    <p class="text-[11px] text-zinc-600">&copy; <span id="y"></span> Otenzza.</p>
+    <script>document.getElementById('y').textContent = new Date().getFullYear()</script>
+  </footer>
 </body>
 </html>
