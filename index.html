@@ -10,14 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0a0a0d;
-      --text:#e8e8ee;
-      --muted:#9a9ab0;
-      --ring: rgba(255,255,255,.10);
-      --size: clamp(220px, 34vw, 360px); /* tamanho do cubo */
+      --bg:#0a0a0d; --text:#e8e8ee; --muted:#9a9ab0; --ring:rgba(255,255,255,.10);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
+    *{box-sizing:border-box} html,body{height:100%}
     body{
       margin:0; color:var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
@@ -25,7 +20,7 @@
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
 
-    /* Topbar / Brand */
+    /* Topbar */
     .topbar{position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter: blur(10px);}
     .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora", Inter, sans-serif; font-size:clamp(28px, 4.4vw, 46px);}
     .dot{width:12px;height:12px;border-radius:50%;background:#2a57ff; box-shadow:0 0 0 7px rgba(42,87,255,.18)}
@@ -38,14 +33,15 @@
 
     /* ===== CUBO 3D ===== */
     .cube-wrap{width:clamp(300px, 40vw, 520px); height:clamp(300px, 40vw, 520px); display:grid; place-items:center; margin:12px 0 18px;}
-    /* A PERSPECTIVE PRECISA ESTAR AQUI (no PAI direto do cubo) */
-    .stage{width:var(--size); height:var(--size); perspective:800px; transform-style:preserve-3d; display:grid; place-items:center;}
+    .stage{width:100%; height:100%; display:grid; place-items:center; perspective:800px;}
 
     .cube{
-      position:relative;
-      width:100%; height:100%;
+      /* define TAMBÉM no cubo para evitar herança quebrar o calc */
+      --size: clamp(220px, 34vw, 360px);
+      --half: calc(var(--size) / 2);
+      position:relative; width:var(--size); height:var(--size);
       transform-style:preserve-3d;
-      --rx:-24deg; --ry:33deg; /* ângulo inicial mostrando 3 faces */
+      --rx:-24deg; --ry:33deg;
       transform: rotateX(var(--rx)) rotateY(var(--ry));
       filter: drop-shadow(0 30px 60px rgba(42,87,255,.28));
       cursor:grab; will-change:transform;
@@ -55,18 +51,16 @@
     .face{
       position:absolute; inset:0; width:100%; height:100%;
       backface-visibility:hidden; border-radius:10px;
-      /* borda interna sutil ajuda a “desenhar” as quinas */
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 0 24px rgba(0,0,0,.25);
     }
-    /* ORDEM correta: ROTATE -> TRANSLATEZ(size/2) */
-    .front  { background: linear-gradient(145deg, #4a6aff, #244bff); transform: translateZ(calc(var(--size)/2)); }
-    .back   { background: linear-gradient(145deg, #1119ff, #0a13ff); transform: rotateY(180deg) translateZ(calc(var(--size)/2)); }
-    .right  { background: linear-gradient(145deg, #3656ff, #1d33ff); transform: rotateY( 90deg) translateZ(calc(var(--size)/2)); }
-    .left   { background: linear-gradient(145deg, #2a4dff, #162cff); transform: rotateY(-90deg) translateZ(calc(var(--size)/2)); }
-    .top    { background: linear-gradient(145deg, #5d76ff, #2d4fff); transform: rotateX( 90deg) translateZ(calc(var(--size)/2)); }
-    .bottom { background: linear-gradient(145deg, #203bff, #0f22ff); transform: rotateX(-90deg) translateZ(calc(var(--size)/2)); }
+    /* ROTATE -> TRANSLATEZ(var(--half))  (com calc já resolvido) */
+    .front  { background: linear-gradient(145deg, #4a6aff, #244bff); transform: translateZ(var(--half)); }
+    .back   { background: linear-gradient(145deg, #1119ff, #0a13ff); transform: rotateY(180deg) translateZ(var(--half)); }
+    .right  { background: linear-gradient(145deg, #3656ff, #1d33ff); transform: rotateY( 90deg) translateZ(var(--half)); }
+    .left   { background: linear-gradient(145deg, #2a4dff, #162cff); transform: rotateY(-90deg) translateZ(var(--half)); }
+    .top    { background: linear-gradient(145deg, #5d76ff, #2d4fff); transform: rotateX( 90deg) translateZ(var(--half)); }
+    .bottom { background: linear-gradient(145deg, #203bff, #0f22ff); transform: rotateX(-90deg) translateZ(var(--half)); }
 
-    /* Halo */
     .halo{position:absolute; inset:-20% -20% -10% -20%; border-radius:50%; pointer-events:none;
       background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
       filter: blur(46px); transform: translateZ(-120px);}
@@ -104,9 +98,7 @@
       <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
 
       <div class="cube-wrap">
-        <!-- PAI COM PERSPECTIVE -->
         <div class="stage" id="stage">
-          <!-- CUBO COM 6 FACES -->
           <div class="cube" id="cube">
             <div class="face front"></div>
             <div class="face back"></div>
@@ -130,12 +122,12 @@
   <footer>© 2025 Otenzza.</footer>
 
   <script>
-    // Drag (mouse/touch) + auto-rotate suave
+    // Drag (mouse/touch) + auto-rotate
     (() => {
       const cube  = document.getElementById('cube');
       const stage = document.getElementById('stage');
 
-      let rx = -24, ry = 33; // ângulos iniciais (3 faces visíveis)
+      let rx = -24, ry = 33;
       let dragging = false, lastX = 0, lastY = 0;
       let auto = true, rafId;
 
@@ -146,29 +138,21 @@
       const move  = (x, y) => {
         if (!dragging) return;
         const dx = x - lastX, dy = y - lastY;
-        ry += dx * 0.45;   // arrasto horizontal
-        rx -= dy * 0.45;   // arrasto vertical
-        rx = clamp(rx, -88, 88); // evita “lâmina” extrema
-        setRot();
-        lastX = x; lastY = y;
+        ry += dx * 0.45; rx -= dy * 0.45;
+        rx = clamp(rx, -88, 88);
+        setRot(); lastX = x; lastY = y;
       };
       const end = () => { dragging = false; auto = true; tick(); };
 
-      // Mouse
       stage.addEventListener('mousedown', e => start(e.clientX, e.clientY));
       window.addEventListener('mousemove', e => move(e.clientX, e.clientY));
       window.addEventListener('mouseup', end);
 
-      // Touch
       stage.addEventListener('touchstart', e => { const t=e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
       window.addEventListener('touchmove', e => { const t=e.touches[0]; move(t.clientX, t.clientY); }, {passive:true});
       window.addEventListener('touchend', end);
 
-      // Auto-rotate quando solta
-      function tick(){
-        if (auto){ ry += 0.10; setRot(); }
-        rafId = requestAnimationFrame(tick);
-      }
+      function tick(){ if (auto){ ry += 0.10; setRot(); } rafId = requestAnimationFrame(tick); }
       setRot(); tick();
     })();
   </script>
