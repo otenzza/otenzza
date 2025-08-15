@@ -44,14 +44,12 @@
     .cube-wrap{position:relative; width:clamp(300px, 40vw, 520px); height:clamp(300px, 40vw, 520px); display:grid; place-items:center; margin:8px 0 16px;}
     .scene{position:relative; width:100%; height:100%; display:grid; place-items:center; perspective:900px;}
 
-    /* cube size is a CSS var for responsiveness */
     .cube3d{
       --size: clamp(220px, 34vw, 360px);
       position:relative;
       width: var(--size);
       height: var(--size);
       transform-style: preserve-3d;
-      /* initial angles */
       --rx:-28deg; --ry:38deg;
       transform: rotateX(var(--rx)) rotateY(var(--ry));
       filter: drop-shadow(0 30px 60px rgba(42,87,255,.25));
@@ -64,23 +62,31 @@
       position:absolute;
       width: var(--size);
       height: var(--size);
+      /* *** ANCORAGEM NO CENTRO *** */
+      left:50%; top:50%;
+      /* cada face vai incluir translate(-50%,-50%) no próprio transform */
       backface-visibility:hidden;
       border-radius:10px;
-      /* subtle edge highlight */
       box-shadow:
         inset 0 0 0 1px rgba(255,255,255,.06),
         inset 0 0 24px rgba(0,0,0,.25);
     }
 
-    /* translateZ by half the size to build the cube */
-    .front  { background: linear-gradient(145deg, #4a6aff 0%, #244bff 100%); transform: translateZ(calc(var(--size)/2)); }
-    .back   { background: linear-gradient(145deg, #1c2cff 0%, #101dff 100%); transform: rotateY(180deg) translateZ(calc(var(--size)/2)); }
-    .right  { background: linear-gradient(145deg, #3656ff 0%, #1d33ff 100%); transform: rotateY(90deg)  translateZ(calc(var(--size)/2)); }
-    .left   { background: linear-gradient(145deg, #2a4dff 0%, #162cff 100%); transform: rotateY(-90deg) translateZ(calc(var(--size)/2)); }
-    .top    { background: linear-gradient(145deg, #5d76ff 0%, #2d4fff 100%); transform: rotateX(90deg)  translateZ(calc(var(--size)/2)); }
-    .bottom { background: linear-gradient(145deg, #203bff 0%, #0f22ff 100%); transform: rotateX(-90deg) translateZ(calc(var(--size)/2)); }
+    /* Faces corretamente centradas + deslocadas em Z */
+    .front  { background: linear-gradient(145deg, #4a6aff 0%, #244bff 100%);
+              transform: translate(-50%,-50%) translateZ(calc(var(--size)/2)); }
+    .back   { background: linear-gradient(145deg, #1c2cff 0%, #101dff 100%);
+              transform: translate(-50%,-50%) rotateY(180deg) translateZ(calc(var(--size)/2)); }
+    .right  { background: linear-gradient(145deg, #3656ff 0%, #1d33ff 100%);
+              transform: translate(-50%,-50%) rotateY(90deg) translateZ(calc(var(--size)/2)); }
+    .left   { background: linear-gradient(145deg, #2a4dff 0%, #162cff 100%);
+              transform: translate(-50%,-50%) rotateY(-90deg) translateZ(calc(var(--size)/2)); }
+    .top    { background: linear-gradient(145deg, #5d76ff 0%, #2d4fff 100%);
+              transform: translate(-50%,-50%) rotateX(90deg) translateZ(calc(var(--size)/2)); }
+    .bottom { background: linear-gradient(145deg, #203bff 0%, #0f22ff 100%);
+              transform: translate(-50%,-50%) rotateX(-90deg) translateZ(calc(var(--size)/2)); }
 
-    /* Halo for premium depth */
+    /* Halo / profundidade */
     .halo{position:absolute; inset:0; border-radius:50%; filter: blur(46px); background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.36), transparent 72%); pointer-events:none; transform: translateZ(-120px);}
 
     /* Form */
@@ -163,7 +169,7 @@
         const dx = x - lastX, dy = y - lastY;
         ry += dx * 0.45;       // horizontal drag
         rx -= dy * 0.45;       // vertical drag
-        rx = clamp(rx, -89.5, 89.5); // evita “lâmina” extrema
+        rx = clamp(rx, -88, 88); // evita “lâmina” extrema
         setRot();
         lastX = x; lastY = y;
       };
@@ -186,10 +192,7 @@
       // Gentle auto rotation when idle
       function tick(){
         if (auto){
-          // desacelera quando perto de 90° para não “virar lâmina”
-          const proximity = Math.min(Math.abs((ry % 180) - 90), 90) / 90; // 1 = longe, 0 = perto
-          const speed = 0.10 * (0.6 + 0.4 * proximity);
-          ry += speed;
+          ry += 0.10;
           setRot();
         }
         rafId = requestAnimationFrame(tick);
