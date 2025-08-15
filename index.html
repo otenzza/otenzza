@@ -7,79 +7,75 @@
   <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{
       --bg:#0a0a0d;
       --text:#e8e8ee;
       --muted:#9a9ab0;
       --ring: rgba(255,255,255,.10);
-      --size: clamp(220px, 34vw, 360px); /* TAMANHO DO CUBO */
+      --size: clamp(220px, 34vw, 360px); /* tamanho do cubo */
     }
-
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0;
+      margin:0; color:var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color:var(--text);
       background: radial-gradient(1200px 600px at 50% 45%, #101018 0%, #0a0a0d 60%);
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
 
     /* Topbar / Brand */
-    .topbar{position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter: blur(10px);}
+    .topbar{position:sticky; top:0; z-index:10; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter: blur(10px);}
     .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora", Inter, sans-serif; font-size:clamp(28px, 4.4vw, 46px);}
     .dot{width:12px;height:12px;border-radius:50%;background:#2a57ff; box-shadow:0 0 0 7px rgba(42,87,255,.18)}
 
     /* Hero */
-    .hero{position:relative; min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px;}
+    .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px;}
     .stack{display:flex; flex-direction:column; align-items:center; gap:16px; text-align:center; max-width:1040px; width:100%;}
     .title{font-size:clamp(18px, 3.2vw, 30px); font-weight:800; letter-spacing:-.01em;}
     .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px, 1.2vw, 14px);}
 
-    /* ===== 3D CUBE ===== */
-    .cube-wrap{position:relative; width:clamp(300px, 40vw, 520px); height:clamp(300px, 40vw, 520px); display:grid; place-items:center; margin:12px 0 18px;}
-    .stage{position:relative; width:var(--size); height:var(--size); perspective:900px; display:grid; place-items:center;}
+    /* ===== CUBO 3D ===== */
+    .cube-wrap{width:clamp(300px, 40vw, 520px); height:clamp(300px, 40vw, 520px); display:grid; place-items:center; margin:12px 0 18px;}
+    /* A PERSPECTIVE PRECISA ESTAR AQUI (no PAI direto do cubo) */
+    .stage{width:var(--size); height:var(--size); perspective:800px; transform-style:preserve-3d; display:grid; place-items:center;}
 
     .cube{
-      width:var(--size);
-      height:var(--size);
+      position:relative;
+      width:100%; height:100%;
       transform-style:preserve-3d;
-      --rx:-24deg; --ry:33deg;                /* Ângulos iniciais mostrando 3 faces */
+      --rx:-24deg; --ry:33deg; /* ângulo inicial mostrando 3 faces */
       transform: rotateX(var(--rx)) rotateY(var(--ry));
       filter: drop-shadow(0 30px 60px rgba(42,87,255,.28));
-      cursor:grab;
-      will-change: transform;
+      cursor:grab; will-change:transform;
     }
     .cube:active{cursor:grabbing}
 
     .face{
-      position:absolute;
-      inset:0;                       /* top:0; right:0; bottom:0; left:0 */
-      width:100%; height:100%;
-      backface-visibility:hidden;
-      border-radius:12px;
+      position:absolute; inset:0; width:100%; height:100%;
+      backface-visibility:hidden; border-radius:10px;
+      /* borda interna sutil ajuda a “desenhar” as quinas */
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 0 24px rgba(0,0,0,.25);
     }
-
-    /* ORDEM CORRETA: rotate -> translateZ( size/2 )  */
-    .front  { background: linear-gradient(145deg, #4a6aff, #244bff);                transform: translateZ(calc(var(--size) * 0.5)); }
-    .back   { background: linear-gradient(145deg, #1c2cff, #101dff);                transform: rotateY(180deg) translateZ(calc(var(--size) * 0.5)); }
-    .right  { background: linear-gradient(145deg, #3656ff, #1d33ff);                transform: rotateY( 90deg) translateZ(calc(var(--size) * 0.5)); }
-    .left   { background: linear-gradient(145deg, #2a4dff, #162cff);                transform: rotateY(-90deg) translateZ(calc(var(--size) * 0.5)); }
-    .top    { background: linear-gradient(145deg, #5d76ff, #2d4fff);                transform: rotateX( 90deg) translateZ(calc(var(--size) * 0.5)); }
-    .bottom { background: linear-gradient(145deg, #203bff, #0f22ff);                transform: rotateX(-90deg) translateZ(calc(var(--size) * 0.5)); }
+    /* ORDEM correta: ROTATE -> TRANSLATEZ(size/2) */
+    .front  { background: linear-gradient(145deg, #4a6aff, #244bff); transform: translateZ(calc(var(--size)/2)); }
+    .back   { background: linear-gradient(145deg, #1119ff, #0a13ff); transform: rotateY(180deg) translateZ(calc(var(--size)/2)); }
+    .right  { background: linear-gradient(145deg, #3656ff, #1d33ff); transform: rotateY( 90deg) translateZ(calc(var(--size)/2)); }
+    .left   { background: linear-gradient(145deg, #2a4dff, #162cff); transform: rotateY(-90deg) translateZ(calc(var(--size)/2)); }
+    .top    { background: linear-gradient(145deg, #5d76ff, #2d4fff); transform: rotateX( 90deg) translateZ(calc(var(--size)/2)); }
+    .bottom { background: linear-gradient(145deg, #203bff, #0f22ff); transform: rotateX(-90deg) translateZ(calc(var(--size)/2)); }
 
     /* Halo */
-    .halo{position:absolute; inset:0; border-radius:50%; filter: blur(46px); background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.36), transparent 72%); pointer-events:none; transform: translateZ(-120px);}
+    .halo{position:absolute; inset:-20% -20% -10% -20%; border-radius:50%; pointer-events:none;
+      background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
+      filter: blur(46px); transform: translateZ(-120px);}
 
     /* Form */
     .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:6px; flex-wrap:wrap;}
     .input{width:min(520px, 78vw); height:46px; border-radius:999px; border:1px solid var(--ring); background:rgba(255,255,255,.04); color:var(--text); padding:0 18px; outline:none; font-size:15px; backdrop-filter: blur(4px);}
     .input::placeholder{color:#8a8aa2}
-    .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow: 0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10); transition: transform .15s ease, box-shadow .2s ease;}
+    .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow: 0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10); transition: transform .15s, box-shadow .2s;}
     .btn:hover{transform: translateY(-1px); box-shadow: 0 16px 36px rgba(255,255,255,.14);}
     .fineprint{color:#7b7b8a; font-size:12px; margin-top:8px}
 
@@ -108,7 +104,9 @@
       <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
 
       <div class="cube-wrap">
+        <!-- PAI COM PERSPECTIVE -->
         <div class="stage" id="stage">
+          <!-- CUBO COM 6 FACES -->
           <div class="cube" id="cube">
             <div class="face front"></div>
             <div class="face back"></div>
@@ -137,22 +135,20 @@
       const cube  = document.getElementById('cube');
       const stage = document.getElementById('stage');
 
-      let rx = -24, ry = 33;
+      let rx = -24, ry = 33; // ângulos iniciais (3 faces visíveis)
       let dragging = false, lastX = 0, lastY = 0;
       let auto = true, rafId;
 
       const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
-      const setRot = () => {
-        cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-      };
+      const setRot = () => cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
 
       const start = (x, y) => { dragging = true; lastX = x; lastY = y; auto = false; cancelAnimationFrame(rafId); };
       const move  = (x, y) => {
         if (!dragging) return;
         const dx = x - lastX, dy = y - lastY;
-        ry += dx * 0.45;
-        rx -= dy * 0.45;
-        rx = clamp(rx, -88, 88);
+        ry += dx * 0.45;   // arrasto horizontal
+        rx -= dy * 0.45;   // arrasto vertical
+        rx = clamp(rx, -88, 88); // evita “lâmina” extrema
         setRot();
         lastX = x; lastY = y;
       };
@@ -164,19 +160,15 @@
       window.addEventListener('mouseup', end);
 
       // Touch
-      stage.addEventListener('touchstart', e => { const t = e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
-      window.addEventListener('touchmove', e => { const t = e.touches[0]; move(t.clientX, t.clientY); }, {passive:true});
+      stage.addEventListener('touchstart', e => { const t=e.touches[0]; start(t.clientX, t.clientY); }, {passive:true});
+      window.addEventListener('touchmove', e => { const t=e.touches[0]; move(t.clientX, t.clientY); }, {passive:true});
       window.addEventListener('touchend', end);
 
-      // Auto rotate
+      // Auto-rotate quando solta
       function tick(){
-        if (auto){
-          ry += 0.10;
-          setRot();
-        }
+        if (auto){ ry += 0.10; setRot(); }
         rafId = requestAnimationFrame(tick);
       }
-
       setRot(); tick();
     })();
   </script>
