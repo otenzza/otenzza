@@ -1,173 +1,223 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>OTENZZA — Presence. Identity. Precision.</title>
-  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube."/>
-  <meta property="og:title" content="OTENZZA — Presence. Identity. Precision.">
-  <meta property="og:description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://otenzza.com">
-  <meta property="og:image" content="https://otenzza.com/logo.png">
-  <link rel="icon" href="/favicon.ico"/>
+  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+  <link rel="icon" href="/favicon.ico" />
+
+  <!-- Tailwind (ok p/ protótipo) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{zinc:{950:'#0b0b0d'}, otenzza:{blue:'#214BFF'}}}}}</script>
+
+  <!-- Import map para módulos ES do Three.js -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.158.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.158.0/examples/jsm/"
+    }
+  }
+  </script>
 
   <style>
-    :root{--bg:#0b0b0d;--fg:#e8ebf5;--muted:#9aa1b2;--accent:#214BFF}
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;font:16px/1.5 system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif;color:var(--fg);background:var(--bg);display:flex;flex-direction:column;align-items:center}
-    .wrap{width:min(1120px,92vw);margin:52px auto 28px}
-    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px}
-    .brand{display:flex;gap:10px;align-items:center;letter-spacing:.28em;font-weight:700;font-size:12px;color:#bfc7da}
-    .dot{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#8fb0ff 0%,#214BFF 100%)}
-    .beta{opacity:.55;font-weight:600;margin-left:4px}
-    h1{margin:0;text-align:center;font-weight:700;font-size:clamp(28px,6vw,44px)}
-    .sub{margin:10px 0 24px;text-align:center;color:var(--muted)}
-    .grid{--s:24px;background:radial-gradient(rgba(255,255,255,.05) 1px, transparent 1px) 0 0/var(--s) var(--s);border-radius:24px}
-    #stage{width:min(86vw,560px);aspect-ratio:1/1;margin:24px auto 18px;position:relative;display:block}
-    canvas#cube{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;border-radius:24px}
-    canvas#cube:active{cursor:grabbing}
-    .form{display:flex;gap:10px;justify-content:center;margin:18px 0 8px;flex-wrap:wrap}
-    .input{width:min(72vw,420px);padding:13px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#111217;color:var(--fg);outline:none}
-    .btn{padding:13px 16px;border-radius:14px;border:1px solid rgba(255,255,255,.12);background:#fff;color:#000;font-weight:600}
-    .note{color:#80879a;text-align:center;font-size:12px}
-    footer{margin:36px 0 24px;color:#6d7486;font-size:12px}
+    /* Fundo pontilhado sutil */
+    .grid-bg {
+      background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
 
-    /* ===== CSS Cube fallback (quando WebGL não está disponível) ===== */
-    .css-cube-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:900px}
-    .css-cube{width:62%;max-width:420px;aspect-ratio:1/1;position:relative;transform-style:preserve-3d;transition:transform .12s linear}
-    .css-face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.08) inset}
-    .css-face.top{transform:rotateX(90deg) translateZ(calc(50%));background:linear-gradient(135deg,#7ea2ff,#214BFF)}
-    .css-face.bottom{transform:rotateX(-90deg) translateZ(calc(50%));background:#141723}
-    .css-face.left{transform:rotateY(-90deg) translateZ(calc(50%));background:#1a2a63}
-    .css-face.right{transform:rotateY(90deg) translateZ(calc(50%));background:#2445ff}
-    .css-face.front{transform:translateZ(calc(50%));background:#233170}
-    .css-face.back{transform:rotateY(180deg) translateZ(calc(50%));background:#101427}
+    /* Área do stage (WebGL) */
+    #stage {
+      position: relative;
+      width: min(88vw, 960px);
+      height: min(62vh, 520px);
+      margin: 0 auto;
+      border-radius: 24px;
+      overflow: hidden;
+    }
+
+    /* ===== CSS Cube fallback (quando WebGL não subir) ===== */
+    #css-fallback { display: none; }
+    .css-cube-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;perspective:1000px}
+    .css-cube{
+      --u: min(62vmin, 420px);
+      width: var(--u); height: var(--u);
+      position:relative; transform-style:preserve-3d; transition:transform .1s linear;
+      will-change: transform;
+    }
+    .css-face{
+      position:absolute; width:100%; height:100%;
+      border-radius:18px; backface-visibility:hidden;
+      box-shadow:0 0 0 1px rgba(255,255,255,.08) inset;
+    }
+    .css-face.front  { transform: translateZ(calc(var(--u) / 2));              background:#233170; }
+    .css-face.back   { transform: rotateY(180deg) translateZ(calc(var(--u) / 2)); background:#101427; }
+    .css-face.right  { transform: rotateY( 90deg) translateZ(calc(var(--u) / 2)); background:#2445ff; }
+    .css-face.left   { transform: rotateY(-90deg) translateZ(calc(var(--u) / 2)); background:#1a2a63; }
+    .css-face.top    { transform: rotateX( 90deg) translateZ(calc(var(--u) / 2)); background:linear-gradient(135deg,#7ea2ff,#214BFF); }
+    .css-face.bottom { transform: rotateX(-90deg) translateZ(calc(var(--u) / 2)); background:#141723; }
+
+    /* Botão “beta” discreto */
+    .badge { font-size:.72rem; letter-spacing:.08em }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <header>
-      <div class="brand"><span class="dot"></span><span>OTENZZA</span><span class="beta">/beta</span></div>
-      <div style="opacity:.55;font-weight:600">/beta</div>
-    </header>
-
-    <h1>Presence. Identity. Precision.</h1>
-    <p class="sub">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
-
-    <div id="stage" class="grid">
-      <canvas id="cube"></canvas> <!-- se WebGL ok, usamos este -->
-      <!-- fallback CSS é injetado via JS se WebGL falhar -->
+<body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg">
+  <!-- Top bar minimalista -->
+  <header class="max-w-6xl mx-auto px-5 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <span class="inline-block w-2.5 h-2.5 rounded-full bg-otenzza-blue"></span>
+      <span class="tracking-widest text-xs font-semibold">OTENZZA</span>
     </div>
+    <span class="badge text-zinc-400">/ beta</span>
+  </header>
 
-    <form class="form" action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank">
-      <input class="input" type="email" name="email" placeholder="your@email.com" required>
-      <button class="btn" type="submit">Reserve early access</button>
-    </form>
-    <div class="note">Founding members — limited circle.</div>
-  </div>
-  <footer>&copy; <span id="y"></span> Otenzza. All rights reserved.</footer>
+  <!-- Hero -->
+  <main class="max-w-6xl mx-auto px-5 pt-6 pb-16">
+    <section class="text-center">
+      <h1 class="text-3xl sm:text-5xl font-semibold">Presence. Identity. Precision.</h1>
+      <p class="text-zinc-400 mt-3">
+        A private, intentional space. No feed. No vanity metrics. Just your Cube.
+      </p>
+    </section>
 
-  <script>
-    document.getElementById('y').textContent = new Date().getFullYear();
+    <!-- STAGE do cubo -->
+    <section class="mt-8">
+      <div id="stage" class="bg-black/10 border border-white/10 backdrop-blur-sm"></div>
 
-    function hasWebGL(){
-      try{
-        const c=document.createElement('canvas');
-        return !!(window.WebGL2RenderingContext && c.getContext('webgl2')) || !!c.getContext('webgl');
-      }catch(e){return false;}
-    }
+      <!-- Fallback CSS cube (aparece só se WebGL falhar) -->
+      <div id="css-fallback">
+        <div class="css-cube-wrap">
+          <div class="css-cube" id="cssCube">
+            <div class="css-face front"></div>
+            <div class="css-face back"></div>
+            <div class="css-face right"></div>
+            <div class="css-face left"></div>
+            <div class="css-face top"></div>
+            <div class="css-face bottom"></div>
+          </div>
+        </div>
+      </div>
+    </section>
 
-    function mountCssCube(){
-      const stage = document.getElementById('stage');
-      const wrap = document.createElement('div');
-      wrap.className = 'css-cube-wrap';
-      const cube = document.createElement('div');
-      cube.className = 'css-cube';
-      ['front','back','left','right','top','bottom'].forEach(cls=>{
-        const f=document.createElement('div'); f.className='css-face '+cls; cube.appendChild(f);
-      });
-      wrap.appendChild(cube); stage.appendChild(wrap);
+    <!-- Lead -->
+    <section class="mt-8 flex items-center justify-center gap-3">
+      <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME" method="post" target="_blank" class="flex w-full max-w-xl gap-3">
+        <input type="email" name="email" required
+               class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10 focus:outline-none focus:ring-2 focus:ring-white/15"
+               placeholder="your@email.com" />
+        <button class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90">
+          Reserve early access
+        </button>
+      </form>
+    </section>
 
-      let rx=-22, ry=-28; // ângulo inicial maduro
-      cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-      let dragging=false, lx=0, ly=0;
+    <p class="text-center text-xs text-zinc-500 mt-3">Founding members — limited circle.</p>
+  </main>
 
-      const onDown = e=>{dragging=true; const p=e.touches?e.touches[0]:e; lx=p.clientX; ly=p.clientY;};
-      const onMove = e=>{
-        if(!dragging) return;
-        const p=e.touches?e.touches[0]:e;
-        const dx=p.clientX-lx, dy=p.clientY-ly;
-        lx=p.clientX; ly=p.clientY;
-        ry += dx*0.25; rx -= dy*0.25;
-        rx=Math.max(-85,Math.min(85,rx));
-        cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
-      };
-      const onUp = ()=> dragging=false;
+  <!-- ===== WebGL + Fallback ===== -->
+  <script type="module">
+    const stage = document.getElementById('stage');
+    const fallback = document.getElementById('css-fallback');
 
-      wrap.addEventListener('mousedown', onDown);
-      window.addEventListener('mousemove', onMove);
-      window.addEventListener('mouseup', onUp);
-      wrap.addEventListener('touchstart', onDown,{passive:true});
-      window.addEventListener('touchmove', onMove,{passive:true});
-      window.addEventListener('touchend', onUp);
-    }
-
-    async function mountThree(){
-      // carrega módulos ES de forma dinâmica para não quebrar CSP de páginas antigas
-      const [{default:THREE}, {OrbitControls}] = await Promise.all([
-        import('https://unpkg.com/three@0.158.0/build/three.module.js'),
-        import('https://unpkg.com/three@0.158.0/examples/jsm/controls/OrbitControls.js')
-      ]);
-
-      const stage=document.getElementById('stage');
-      const canvas=document.getElementById('cube');
-      const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
-
-      const scene=new THREE.Scene();
-      const camera=new THREE.PerspectiveCamera(28,1,0.1,100);
-      camera.position.set(3.6,2.8,4.2);
-
-      const matTop   = new THREE.MeshStandardMaterial({ color:0x3c6aff, metalness:0.65, roughness:0.25 });
-      const matLeft  = new THREE.MeshStandardMaterial({ color:0x1a2a63, metalness:0.6,  roughness:0.3 });
-      const matRight = new THREE.MeshStandardMaterial({ color:0x2445ff, metalness:0.65, roughness:0.25 });
-      const geo=new THREE.BoxGeometry(1.8,1.8,1.8);
-      const mats=[matRight,matLeft,matTop,matLeft,matRight,matTop];
-      const cube=new THREE.Mesh(geo,mats);
-      cube.rotation.set(0.55,-0.6,0.22);
-      scene.add(cube);
-
-      scene.add(new THREE.AmbientLight(0xffffff,0.6));
-      const key=new THREE.DirectionalLight(0xffffff,0.8); key.position.set(3,4,2); scene.add(key);
-      const rim=new THREE.DirectionalLight(0x6aa2ff,0.6); rim.position.set(-3,-1.5,-2); scene.add(rim);
-
-      const controls=new OrbitControls(camera,renderer.domElement);
-      controls.enableDamping=true; controls.enableZoom=false; controls.rotateSpeed=0.9;
-
-      function resize(){
-        const w=stage.clientWidth, h=stage.clientHeight;
-        renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix();
-      }
-      window.addEventListener('resize', resize); resize();
-
-      function tick(){
-        requestAnimationFrame(tick);
-        cube.rotation.y += 0.003;
-        controls.update();
-        renderer.render(scene,camera);
-      }
-      tick();
-    }
-
-    (async ()=>{
-      if(hasWebGL()){
-        try{ await mountThree(); }
-        catch(e){ console.warn('WebGL disponível, mas falhou ao montar Three.js. Usando fallback.', e); mountCssCube(); }
-      }else{
+    // Tenta montar o Three. Se falhar por qualquer motivo, ativa o fallback CSS.
+    (async function mount() {
+      try {
+        await mountThree();
+        console.log('WebGL OK — Three.js rodando');
+      } catch (err) {
+        console.warn('WebGL disponível, mas falhou ao montar Three.js. Usando fallback.', err);
+        stage.style.display = 'none';
+        fallback.style.display = 'block';
         mountCssCube();
       }
     })();
+
+    async function mountThree(){
+      const THREE = await import('three');
+      const { OrbitControls } = await import('three/addons/controls/OrbitControls.js');
+
+      // Renderer
+      const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(stage.clientWidth, stage.clientHeight);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      stage.appendChild(renderer.domElement);
+
+      // Cena + câmera
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(28, stage.clientWidth/stage.clientHeight, 0.1, 100);
+      camera.position.set(4.2, 2.8, 6.7);
+      scene.add(camera);
+
+      // Luzes suaves
+      const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3,4,6); scene.add(key);
+      const rim = new THREE.DirectionalLight(0x214BFF, 0.7); rim.position.set(-4,2,-3); scene.add(rim);
+      scene.add(new THREE.AmbientLight(0x6b7280, 0.35));
+
+      // Cubo “premium”: material físico, azul profundo
+      const geo = new THREE.BoxGeometry(2,2,2, 1,1,1);
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0x214BFF,
+        metalness: 0.15,
+        roughness: 0.25,
+        clearcoat: 0.6,
+        clearcoatRoughness: 0.2,
+        sheen: 0.0,
+        envMapIntensity: 0.4
+      });
+      const cube = new THREE.Mesh(geo, mat);
+      cube.rotation.set(0.35, 0.55, 0);
+      scene.add(cube);
+
+      // Controles (mouse/touch)
+      const controls = new OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.enablePan = false;
+      controls.minDistance = 4; controls.maxDistance = 12;
+
+      // Resize
+      addEventListener('resize', () => {
+        const w = stage.clientWidth, h = stage.clientHeight;
+        renderer.setSize(w, h);
+        camera.aspect = w/h; camera.updateProjectionMatrix();
+      });
+
+      // Loop
+      const clock = new THREE.Clock();
+      (function animate(){
+        const t = clock.getElapsedTime();
+        cube.rotation.y += 0.0025;
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      })();
+    }
+
+    // Fallback: cubo CSS interativo (arrasta = gira)
+    function mountCssCube(){
+      const cube = document.getElementById('cssCube');
+      let sx=0, sy=0, rx=-18, ry=22, dragging=false;
+
+      const apply = ()=> cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+      apply();
+
+      const onDown = e => { dragging=true; sx= (e.touches?.[0]?.clientX ?? e.clientX); sy=(e.touches?.[0]?.clientY ?? e.clientY); };
+      const onMove = e => {
+        if(!dragging) return;
+        const x=(e.touches?.[0]?.clientX ?? e.clientX), y=(e.touches?.[0]?.clientY ?? e.clientY);
+        ry += (x-sx)*0.2; rx -= (y-sy)*0.2; sx=x; sy=y; apply();
+      };
+      const onUp = ()=> dragging=false;
+
+      cube.addEventListener('mousedown', onDown);
+      cube.addEventListener('touchstart', onDown, {passive:true});
+      window.addEventListener('mousemove', onMove, {passive:false});
+      window.addEventListener('touchmove', onMove, {passive:false});
+      window.addEventListener('mouseup', onUp);
+      window.addEventListener('touchend', onUp);
+    }
   </script>
 </body>
 </html>
