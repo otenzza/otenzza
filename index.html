@@ -22,38 +22,22 @@
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
       display:grid; place-items:center;
     }
-    main{ width:min(960px, 92vw); display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center }
 
+    /* Layout central */
+    main{ width:min(840px, 92vw); display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center }
+
+    /* Marca OTENZZA + cubinho */
     .brand{
+      display:flex; align-items:center; gap:12px;
       font-family:"Sora", Inter, sans-serif;
-      letter-spacing:.18em; text-transform:uppercase;
-      font-weight:800; font-size:clamp(28px, 4vw, 42px);
-      display:flex; align-items:center; gap:.6rem;
-    }
-    .dot{ width:12px; height:12px; border-radius:50%; background:var(--brand);
-      box-shadow:0 0 0 7px rgba(42,87,255,.18) }
-
-    /* Cubo estático (losango translúcido) */
-    .cube{
-      width:clamp(160px, 26vw, 300px);
-      height:clamp(160px, 26vw, 300px);
-      transform: rotate(45deg);
-      border-radius:22px;
-      background: linear-gradient(148deg, #3a63ff, #1f3fff);
-      box-shadow:
-        0 28px 80px rgba(42,87,255,.25),
-        inset 0 0 0 1px rgba(255,255,255,.06),
-        inset 0 -20px 40px rgba(0,0,0,.25);
-      position:relative;
-      margin-block: 22px 4px;
-    }
-    .cube::before{
-      content:""; position:absolute; inset:12% 12% auto 12%; height:35%;
-      border-radius:16px;
-      background: radial-gradient(120% 100% at 50% 0%,
-        rgba(255,255,255,.35) 0%, rgba(255,255,255,.08) 45%, transparent 70%);
+      text-transform:uppercase; letter-spacing:.18em; font-weight:800;
+      font-size:clamp(28px, 4.2vw, 44px);
     }
 
+    /* Cubinho 3D (SVG) */
+    .cube-logo{ width:clamp(22px, 3vw, 32px); height:auto; display:block; }
+
+    /* Formulário */
     .form{ display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px }
     .input{
       width:min(520px, 78vw); height:46px; border-radius:999px;
@@ -66,14 +50,44 @@
       background:#fff; color:#0a0a0d; border:1px solid rgba(255,255,255,.22);
       box-shadow:0 12px 30px rgba(255,255,255,.10); white-space:nowrap;
     }
+
     .fine{ color:#7b7b8a; font-size:12px; margin-top:6px }
   </style>
 </head>
 <body>
   <main>
-    <div class="brand"><span class="dot" aria-hidden="true"></span>OTENZZA</div>
-    <div class="cube" aria-hidden="true"></div>
+    <!-- Marca -->
+    <div class="brand" aria-label="Otenzza">
+      <!-- Cubinho 3D pequeno, estático -->
+      <svg class="cube-logo" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+          <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#5d7bff" stop-opacity=".95"/>
+            <stop offset="1" stop-color="#2a57ff" stop-opacity=".95"/>
+          </linearGradient>
+          <linearGradient id="gLeft" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#2e5bff"/>
+            <stop offset="1" stop-color="#1736ff"/>
+          </linearGradient>
+          <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3c64ff"/>
+            <stop offset="1" stop-color="#244bff"/>
+          </linearGradient>
+        </defs>
+        <!-- Cubo isométrico: topo, esquerda, direita -->
+        <polygon points="24,4 8,12 24,20 40,12" fill="url(#gTop)"/>
+        <polygon points="8,12 8,28 24,36 24,20" fill="url(#gLeft)"/>
+        <polygon points="40,12 40,28 24,36 24,20" fill="url(#gRight)"/>
+        <!-- Arestas sutis -->
+        <polygon points="24,4 8,12 24,20 40,12" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".6"/>
+        <polygon points="8,12 8,28 24,36 24,20" fill="none" stroke="rgba(255,255,255,.25)" stroke-width=".6"/>
+        <polygon points="40,12 40,28 24,36 24,20" fill="none" stroke="rgba(255,255,255,.25)" stroke-width=".6"/>
+      </svg>
 
+      OTENZZA
+    </div>
+
+    <!-- Form -->
     <form class="form" action="#" method="post" onsubmit="event.preventDefault(); alert('Obrigado!');">
       <input class="input" type="email" placeholder="your@email.com" required aria-label="Email" />
       <button class="btn" type="submit">Reserve early access</button>
