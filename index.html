@@ -8,7 +8,7 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
 
   <style>
     :root{
@@ -17,6 +17,7 @@
       --muted:#9a9ab0;
       --brand:#2a57ff;
       --ring: rgba(255,255,255,.10);
+      --size: clamp(220px, 34vw, 360px); /* tamanho do CUBO */
     }
 
     *{box-sizing:border-box}
@@ -41,16 +42,16 @@
     .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px, 1.2vw, 14px);}
 
     /* ===== 3D Cube ===== */
-    .cube-wrap{position:relative; width:clamp(300px, 40vw, 520px); height:clamp(300px, 40vw, 520px); display:grid; place-items:center; margin:8px 0 16px;}
+    .cube-wrap{position:relative; width:clamp(300px, 40vw, 520px); height:clamp(300px, 40vw, 520px); display:grid; place-items:center; margin:12px 0 18px;}
     .scene{position:relative; width:100%; height:100%; display:grid; place-items:center; perspective:900px;}
 
     .cube3d{
-      --size: clamp(220px, 34vw, 360px);
       position:relative;
       width: var(--size);
       height: var(--size);
       transform-style: preserve-3d;
-      --rx:-28deg; --ry:38deg;
+      /* ângulos iniciais */
+      --rx:-26deg; --ry:38deg;
       transform: rotateX(var(--rx)) rotateY(var(--ry));
       filter: drop-shadow(0 30px 60px rgba(42,87,255,.25));
       cursor: grab;
@@ -64,7 +65,6 @@
       height: var(--size);
       /* *** ANCORAGEM NO CENTRO *** */
       left:50%; top:50%;
-      /* cada face vai incluir translate(-50%,-50%) no próprio transform */
       backface-visibility:hidden;
       border-radius:10px;
       box-shadow:
@@ -72,21 +72,21 @@
         inset 0 0 24px rgba(0,0,0,.25);
     }
 
-    /* Faces corretamente centradas + deslocadas em Z */
+    /* Faces centradas + deslocadas em Z (meia espessura) */
     .front  { background: linear-gradient(145deg, #4a6aff 0%, #244bff 100%);
               transform: translate(-50%,-50%) translateZ(calc(var(--size)/2)); }
     .back   { background: linear-gradient(145deg, #1c2cff 0%, #101dff 100%);
               transform: translate(-50%,-50%) rotateY(180deg) translateZ(calc(var(--size)/2)); }
     .right  { background: linear-gradient(145deg, #3656ff 0%, #1d33ff 100%);
-              transform: translate(-50%,-50%) rotateY(90deg) translateZ(calc(var(--size)/2)); }
+              transform: translate(-50%,-50%) rotateY(90deg)  translateZ(calc(var(--size)/2)); }
     .left   { background: linear-gradient(145deg, #2a4dff 0%, #162cff 100%);
               transform: translate(-50%,-50%) rotateY(-90deg) translateZ(calc(var(--size)/2)); }
     .top    { background: linear-gradient(145deg, #5d76ff 0%, #2d4fff 100%);
-              transform: translate(-50%,-50%) rotateX(90deg) translateZ(calc(var(--size)/2)); }
+              transform: translate(-50%,-50%) rotateX(90deg)  translateZ(calc(var(--size)/2)); }
     .bottom { background: linear-gradient(145deg, #203bff 0%, #0f22ff 100%);
               transform: translate(-50%,-50%) rotateX(-90deg) translateZ(calc(var(--size)/2)); }
 
-    /* Halo / profundidade */
+    /* Halo premium */
     .halo{position:absolute; inset:0; border-radius:50%; filter: blur(46px); background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.36), transparent 72%); pointer-events:none; transform: translateZ(-120px);}
 
     /* Form */
@@ -151,8 +151,7 @@
       const cube  = document.getElementById('cube');
       const scene = document.getElementById('scene');
 
-      // starting angles
-      let rx = -28, ry = 38;
+      let rx = -26, ry = 38;      // starting angles
       let dragging = false, lastX = 0, lastY = 0;
       let auto = true, rafId;
 
