@@ -10,67 +10,67 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0a0a0d;
-      --text:#e8e8ee;
-      --muted:#9a9ab0;
-      --brand:#2a57ff;
-      --brand-2:#244bff;
-      --ring:rgba(255,255,255,.12);
+      --bg:#0a0a0d; --text:#e8e8ee; --muted:#9a9ab0;
+      --brand:#2a57ff; --brand2:#244bff; --ring:rgba(255,255,255,.12);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; color:var(--text);
       font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: radial-gradient(1200px 600px at 50% 40%, #101018 0%, var(--bg) 60%);
+      background: radial-gradient(1100px 560px at 50% 38%, #101018 0%, var(--bg) 60%);
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
       display:grid; place-items:center;
     }
+    main{ width:min(960px, 92vw); display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center }
 
-    /* layout */
-    .wrap{width:min(960px, 92vw); display:flex; flex-direction:column; align-items:center; gap:18px; text-align:center}
-    .brand{font-family:"Sora", Inter, sans-serif; letter-spacing:.18em; text-transform:uppercase; font-weight:800; font-size:clamp(28px, 4vw, 42px); display:flex; align-items:center; gap:.6rem}
-    .dot{width:12px;height:12px;border-radius:50%;background:var(--brand); box-shadow:0 0 0 7px rgba(42,87,255,.18)}
+    .brand{
+      font-family:"Sora", Inter, sans-serif;
+      letter-spacing:.18em; text-transform:uppercase;
+      font-weight:800; font-size:clamp(28px, 4vw, 42px);
+      display:flex; align-items:center; gap:.6rem;
+    }
+    .dot{ width:12px; height:12px; border-radius:50%; background:var(--brand);
+      box-shadow:0 0 0 7px rgba(42,87,255,.18) }
 
-    .subtitle{color:var(--muted); font-size:clamp(12px, 1.2vw, 14px); margin-top:-2px}
-
-    /* “cubo” estático (quadrado rotacionado 45°) */
+    /* Cubo estático (losango translúcido) */
     .cube{
-      position:relative;
-      width:clamp(160px, 28vw, 320px);
-      height:clamp(160px, 28vw, 320px);
+      width:clamp(160px, 26vw, 300px);
+      height:clamp(160px, 26vw, 300px);
       transform: rotate(45deg);
-      border-radius:18px;
-      background: linear-gradient(145deg, var(--brand), var(--brand-2));
+      border-radius:22px;
+      background: linear-gradient(148deg, #3a63ff, #1f3fff);
       box-shadow:
-        0 40px 90px rgba(42,87,255,.28),
-        inset 0 0 0 1px rgba(255,255,255,.06);
+        0 28px 80px rgba(42,87,255,.25),
+        inset 0 0 0 1px rgba(255,255,255,.06),
+        inset 0 -20px 40px rgba(0,0,0,.25);
+      position:relative;
+      margin-block: 22px 4px;
     }
     .cube::before{
-      content:""; position:absolute; inset:-18%; border-radius:40px;
-      background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
-      filter: blur(26px); z-index:-1;
+      content:""; position:absolute; inset:12% 12% auto 12%; height:35%;
+      border-radius:16px;
+      background: radial-gradient(120% 100% at 50% 0%,
+        rgba(255,255,255,.35) 0%, rgba(255,255,255,.08) 45%, transparent 70%);
     }
 
-    /* form */
-    .form{display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:10px}
+    .form{ display:flex; gap:12px; align-items:center; justify-content:center; flex-wrap:wrap; margin-top:6px }
     .input{
       width:min(520px, 78vw); height:46px; border-radius:999px;
       border:1px solid var(--ring); background:rgba(255,255,255,.05);
       color:var(--text); padding:0 18px; outline:none; font-size:15px;
     }
-    .input::placeholder{color:#8b8ba2}
+    .input::placeholder{ color:#8b8ba2 }
     .btn{
       height:46px; border-radius:999px; padding:0 20px; font-weight:800; cursor:pointer;
       background:#fff; color:#0a0a0d; border:1px solid rgba(255,255,255,.22);
-      box-shadow:0 12px 30px rgba(255,255,255,.10);
+      box-shadow:0 12px 30px rgba(255,255,255,.10); white-space:nowrap;
     }
-
-    .fine{color:#7b7b8a; font-size:12px; margin-top:6px}
+    .fine{ color:#7b7b8a; font-size:12px; margin-top:6px }
   </style>
 </head>
 <body>
-  <main class="wrap">
+  <main>
     <div class="brand"><span class="dot" aria-hidden="true"></span>OTENZZA</div>
     <div class="cube" aria-hidden="true"></div>
 
@@ -78,6 +78,7 @@
       <input class="input" type="email" placeholder="your@email.com" required aria-label="Email" />
       <button class="btn" type="submit">Reserve early access</button>
     </form>
+
     <div class="fine">Founding members — limited circle.</div>
   </main>
 </body>
