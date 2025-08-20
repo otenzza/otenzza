@@ -1,173 +1,228 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Otenzza — your altar of presence</title>
-  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+  <title>Otenzza — your altar of presence & identity</title>
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="style.css">
+
+  <!-- OG / Social -->
+  <meta property="og:title" content="Otenzza — your altar of presence & identity" />
+  <meta property="og:description" content="Build your private Cube — Visual, Sound, Text and Vibe. No algorithm. Only presence." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://otenzza.com" />
+  <meta property="og:image" content="https://otenzza.com/logo.png" />
+
+  <!-- Tailwind CDN (rápido p/ protótipo) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            zinc: { 950: '#0b0b0d' },
+            otenzza: { blue: '#214BFF' }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Fundo pontilhado sutil -->
   <style>
-    :root{ --bg:#0a0a0d; --text:#e8e8ee; --muted:#9a9ab0; --ring:rgba(255,255,255,.10); }
-    *{box-sizing:border-box} html,body{height:100%}
-    body{
-      margin:0; color:var(--text);
-      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      background: radial-gradient(1200px 600px at 50% 45%, #101018 0%, var(--bg) 60%);
-      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
-    }
-
-    /* topo */
-    .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
-    .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
-    .dot{width:12px;height:12px;border-radius:50%;background:#2a57ff; box-shadow:0 0 0 7px rgba(42,87,255,.18)}
-
-    /* hero */
-    .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
-    .stack{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%; max-width:1040px}
-    .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
-    .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px)}
-
-    /* container do cubo */
-    .cube-wrap{
-      width:min(520px,85vw); height:min(520px,85vw);
-      display:grid; place-items:center; margin:14px 0 18px; position:relative;
-      touch-action:none; overscroll-behavior:contain; user-select:none; /* trava scroll */
-    }
-    .cube-wrap::before{
-      content:""; position:absolute; inset:-12% -12% -6% -12%; border-radius:50%;
-      background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
-      filter: blur(42px); z-index:0;
-    }
-    #three-canvas{
-      width:100%; height:100%; display:block; touch-action:none; border-radius:18px;
-    }
-
-    /* form */
-    .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:8px; flex-wrap:wrap}
-    .input{width:min(520px,78vw); height:46px; border-radius:999px; border:1px solid var(--ring); background:rgba(255,255,255,.04); color:var(--text); padding:0 18px; outline:none; font-size:15px; backdrop-filter:blur(4px)}
-    .input::placeholder{color:#8a8aa2}
-    .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow:0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10); white-space:nowrap}
-    .fineprint{color:#7b7b8a; font-size:12px; margin-top:8px}
-
-    footer{padding:52px 20px; text-align:center; color:#7b7b8a; font-size:12px}
-
-    @media (max-width:640px){
-      .brand{font-size:clamp(26px,8vw,38px)}
-      .title{font-size:clamp(16px,5vw,24px)}
-      .subtitle{font-size:clamp(11px,3.2vw,13px)}
+    .grid-bg {
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 24px 24px;
     }
   </style>
+  <noscript><style>[data-i18n]{opacity:1!important}</style></noscript>
 </head>
-<body>
-  <header class="topbar">
-    <div class="brand"><span class="dot" aria-hidden="true"></span><span>OTENZZA</span></div>
+
+<body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg">
+  <!-- Top bar -->
+  <header class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <!-- Mini cubo no header -->
+      <svg class="w-8 h-8" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
+            <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
+          </linearGradient>
+          <linearGradient id="mLeft" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#1332B8"/>
+            <stop offset="100%" stop-color="#1C2C6E"/>
+          </linearGradient>
+          <linearGradient id="mRight" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#2D5BFF"/>
+            <stop offset="100%" stop-color="#1A3DE0"/>
+          </linearGradient>
+        </defs>
+        <polygon fill="url(#mTop)"  points="120,28 205,78 120,128 35,78"/>
+        <polygon fill="url(#mLeft)" points="35,78 120,128 120,208 35,158"/>
+        <polygon fill="url(#mRight)" points="205,78 120,128 120,208 205,158"/>
+      </svg>
+      <span class="tracking-widest text-sm font-semibold">OTENZZA</span>
+    </div>
+
+    <!-- Lang toggle -->
+    <button id="langToggle"
+            class="text-xs px-3 py-1.5 rounded-xl border border-white/10 hover:border-white/30 transition">
+      PT-BR
+    </button>
   </header>
 
-  <main class="hero">
-    <div class="stack">
-      <h1 class="title">Presence. Identity. Precision.</h1>
-      <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
+  <!-- Hero -->
+  <main class="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+    <section class="grid md:grid-cols-2 gap-10 items-center">
+      <div>
+        <h1 class="text-4xl sm:text-5xl md:text-6xl leading-tight font-semibold">
+          <span data-i18n="hero_title_1">Your digital altar</span><br />
+          <span data-i18n="hero_title_2">of presence & identity.</span>
+        </h1>
 
-      <div class="cube-wrap" id="cube-wrap">
-        <canvas id="three-canvas"></canvas>
+        <p class="mt-5 text-zinc-300 max-w-xl" data-i18n="hero_sub">
+          Otenzza is a private space where you build a Cube with four faces — Visual, Sound, Text and Vibe — and open secret doors for real connections.
+        </p>
+
+        <div class="mt-7 flex flex-col sm:flex-row gap-3">
+          <a href="#join"
+             class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90 transition"
+             data-i18n="cta_primary">Get my Cube</a>
+          <a href="#manifesto"
+             class="px-5 py-3 rounded-2xl border border-white/15 hover:border-white/35 transition"
+             data-i18n="cta_secondary">Read the manifesto</a>
+        </div>
       </div>
 
-      <form class="form" onsubmit="event.preventDefault(); alert('Reserved. Welcome to the circle.');">
-        <input class="input" type="email" placeholder="your@email.com" required aria-label="Email"/>
-        <button class="btn" type="submit">Reserve early access</button>
-      </form>
-      <div class="fineprint">Founding members — limited circle.</div>
-    </div>
+      <div class="md:justify-self-end">
+        <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm w-fit">
+          <!-- CUBO OTENZZA (SVG animado via CSS em style.css) -->
+          <svg class="cube3d mx-auto" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Otenzza Cube">
+            <defs>
+              <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
+                <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
+              </linearGradient>
+              <linearGradient id="gLeft" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#1332B8" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#1C2C6E" stop-opacity="0.95"/>
+              </linearGradient>
+              <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2D5BFF" stop-opacity="0.95"/>
+                <stop offset="100%" stop-color="#1A3DE0" stop-opacity="0.95"/>
+              </linearGradient>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="12" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+              </filter>
+            </defs>
+            <ellipse cx="120" cy="210" rx="62" ry="14" fill="#0b0b0d" opacity="0.55"/>
+            <g filter="url(#glow)">
+              <polygon fill="url(#gTop)"  points="120,28 205,78 120,128 35,78"  opacity="0.95"/>
+              <polygon fill="url(#gLeft)" points="35,78 120,128 120,208 35,158"  opacity="0.98"/>
+              <polygon fill="url(#gRight)" points="205,78 120,128 120,208 205,158" opacity="0.98"/>
+            </g>
+          </svg>
+
+          <!-- Botões das faces com classes de realce -->
+          <div class="mt-5 grid grid-cols-2 gap-3 text-center cube-panel">
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Visual</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Sound</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Text</div>
+            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Vibe</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Manifesto curto -->
+    <section id="manifesto" class="mt-20 max-w-3xl">
+      <h2 class="text-2xl font-semibold mb-3" data-i18n="man_title">Why Otenzza?</h2>
+      <p class="text-zinc-300" data-i18n="man_p1">
+        Social feeds are designed to trap your attention. Otenzza is different: no infinite scroll, no vanity metrics — only intentional presence.
+      </p>
+      <p class="text-zinc-300 mt-3" data-i18n="man_p2">
+        Start small with your Cube. Keep what matters. Unlock private doors. Be seen for who you are.
+      </p>
+    </section>
+
+    <!-- Join / lead capture placeholder -->
+    <section id="join" class="mt-16 max-w-xl">
+      <div class="rounded-3xl p-5 bg-white/5 border border-white/10">
+        <h3 class="text-lg font-medium" data-i18n="join_title">Early access — Founding Members</h3>
+        <p class="text-sm text-zinc-300 mt-1" data-i18n="join_sub">
+          Be part of the first circle and help shape Otenzza. Limited spots.
+        </p>
+        <!-- Substitua action pelo seu provedor (ex. Buttondown/Brevo/Stripe checkout) -->
+        <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
+              method="post" target="_blank" class="mt-4 flex flex-col sm:flex-row gap-3">
+          <input type="email" name="email" required
+                 class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10
+                        focus:outline-none focus:ring-2 focus:ring-white/20"
+                 placeholder="you@email.com" />
+          <button class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90"
+                  data-i18n="join_btn">Reserve my invite</button>
+        </form>
+      </div>
+    </section>
   </main>
 
-  <footer>© 2025 Otenzza.</footer>
+  <footer class="border-t border-white/5 py-8 mt-10">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 text-xs text-zinc-400 flex items-center justify-between">
+      <span>&copy; <span id="year"></span> Otenzza. All rights reserved.</span>
+      <a href="mailto:hello@otenzza.com" class="hover:text-zinc-200">hello@otenzza.com</a>
+    </div>
+  </footer>
 
-  <!-- Three.js -->
-  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
-  <script src="https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- i18n: EN default + PT-BR -->
   <script>
-    (function(){
-      const container = document.getElementById('cube-wrap');
-      const canvas    = document.getElementById('three-canvas');
+    const dict = {
+      en: {
+        hero_title_1: "Your digital altar",
+        hero_title_2: "of presence & identity.",
+        hero_sub: "Otenzza is a private space where you build a Cube with four faces — Visual, Sound, Text and Vibe — and open secret doors for real connections.",
+        cta_primary: "Get my Cube",
+        cta_secondary: "Read the manifesto",
+        man_title: "Why Otenzza?",
+        man_p1: "Social feeds are designed to trap your attention. Otenzza is different: no infinite scroll, no vanity metrics — only intentional presence.",
+        man_p2: "Start small with your Cube. Keep what matters. Unlock private doors. Be seen for who you are.",
+        join_title: "Early access — Founding Members",
+        join_sub: "Be part of the first circle and help shape Otenzza. Limited spots.",
+        join_btn: "Reserve my invite"
+      },
+      pt: {
+        hero_title_1: "Seu altar digital",
+        hero_title_2: "de presença e identidade.",
+        hero_sub: "Otenzza é um espaço fechado onde você constrói um Cubo com quatro faces — Visual, Som, Texto e Vibe — e abre portas secretas para conexões reais.",
+        cta_primary: "Quero meu Cubo",
+        cta_secondary: "Ler o manifesto",
+        man_title: "Por que a Otenzza?",
+        man_p1: "As redes sociais foram feitas para prender sua atenção. A Otenzza é diferente: sem feed infinito, sem métricas de vaidade — só presença intencional.",
+        man_p2: "Comece pequeno com seu Cubo. Guarde o que importa. Abra portas privadas. Seja visto por quem você é.",
+        join_title: "Acesso antecipado — Membros Fundadores",
+        join_sub: "Faça parte do primeiro círculo e ajude a moldar a Otenzza. Vagas limitadas.",
+        join_btn: "Garantir meu convite"
+      }
+    };
 
-      // Cena / câmera / renderer
-      const scene  = new THREE.Scene();
-      const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-      camera.position.set(3.2, 2.2, 3.6);
-
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias:true, alpha:true, powerPreference:'high-performance' });
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-
-      // Luzes
-      scene.add(new THREE.AmbientLight(0xffffff, 0.45));
-      const key = new THREE.DirectionalLight(0xffffff, 1.0);
-      key.position.set(3, 4, 5);
-      scene.add(key);
-      const rim = new THREE.PointLight(0x6d8bff, 0.7);
-      rim.position.set(-4, -2, -3);
-      scene.add(rim);
-
-      // Cubo (6 faces reais)
-      const geo = new THREE.BoxGeometry(1,1,1);
-      const mat = new THREE.MeshPhysicalMaterial({
-        color: 0x3f64ff,
-        metalness: 0.15,
-        roughness: 0.18,
-        clearcoat: 0.5,
-        clearcoatRoughness: 0.08,
-        transparent: true,
-        opacity: 0.95
+    const els = document.querySelectorAll("[data-i18n]");
+    const btn = document.getElementById("langToggle");
+    let current = "en";
+    function applyLang(lang) {
+      els.forEach(el => {
+        const key = el.getAttribute("data-i18n");
+        el.textContent = dict[lang][key] || el.textContent;
       });
-      const cube = new THREE.Mesh(geo, mat);
-      scene.add(cube);
-
-      // Arestas sutis
-      const line = new THREE.LineSegments(
-        new THREE.EdgesGeometry(geo),
-        new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.25 })
-      );
-      cube.add(line);
-
-      // Controles (drag para girar)
-      const controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableZoom = false;
-      controls.enablePan  = false;
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.08;
-      // ângulo inicial mostrando 3 faces
-      camera.lookAt(cube.position);
-      controls.update();
-
-      // Bloqueio de scroll na área do cubo (além do CSS)
-      container.addEventListener('wheel', e => e.preventDefault(), { passive:false });
-      container.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
-
-      // Responsividade + escala estável do cubo
-      function resize(){
-        const w = container.clientWidth;
-        const h = container.clientHeight;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.setSize(w, h, false);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-
-        // Escala garantida pro cubo ficar visível em qualquer tamanho
-        const s = Math.min(w, h);
-        cube.scale.setScalar(s / 240); // ajuste fino: menor divisor => cubo maior
-      }
-      resize();
-      window.addEventListener('resize', resize);
-
-      // Render loop
-      function tick(){
-        controls.update();
-        renderer.render(scene, camera);
-        requestAnimationFrame(tick);
-      }
-      tick();
-    })();
+      btn.textContent = (lang === "en") ? "PT-BR" : "EN";
+      document.documentElement.lang = (lang === "en") ? "en" : "pt-BR";
+      current = lang;
+    }
+    btn.addEventListener("click", () => applyLang(current === "en" ? "pt" : "en"));
+    applyLang("en");
+    document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
 </html>
+
