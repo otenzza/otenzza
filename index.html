@@ -5,102 +5,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Otenzza — your altar of presence</title>
   <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+
+  <!-- Fontes -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+
   <style>
     :root{
       --bg:#0a0a0d; --text:#e8e8ee; --muted:#9a9ab0; --ring:rgba(255,255,255,.10);
-      --brand1:#4a6aff; --brand2:#244bff; --brand3:#1733ff; --brand4:#74b8ff;
-      /* tamanho do cubo (pode ajustar) */
-      --size: 260px;
-      --half: 130px; /* metade de --size (manter coerente) */
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; color:var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       background: radial-gradient(1200px 600px at 50% 45%, #101018 0%, var(--bg) 60%);
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
 
-    /* topo / marca */
+    /* Topo / marca */
     .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
     .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
     .dot{width:12px;height:12px;border-radius:50%;background:#2a57ff; box-shadow:0 0 0 7px rgba(42,87,255,.18)}
 
-    /* hero */
+    /* Hero */
     .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
     .stack{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%; max-width:1040px}
     .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
     .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px)}
 
-    /* ===== CUBO 3D — do zero ===== */
+    /* Área do cubo (scroll bloqueado aqui) */
     .cube-wrap{
-      width: 440px; height: 440px; margin:12px 0 18px;
-      display:grid; place-items:center;
-      /* bloquear scroll/gestos nessa área */
-      touch-action:none; overscroll-behavior:contain; user-select:none;
+      width:min(520px, 85vw); height:min(520px, 85vw);
+      display:grid; place-items:center; margin:14px 0 18px;
+      position:relative;
+      touch-action:none;               /* bloqueia gestos/scroll */
+      overscroll-behavior:contain;
+      user-select:none;
     }
-    .scene{
-      width:100%; height:100%; display:grid; place-items:center;
-      perspective: 1000px; perspective-origin: 50% 50%;
-      touch-action:none; overscroll-behavior:contain; user-select:none;
-    }
-    .cube{
-      position:relative; width:var(--size); height:var(--size);
-      transform-style: preserve-3d;
-      filter: drop-shadow(0 26px 54px rgba(42,87,255,.28));
-      cursor:grab; will-change:transform;
-      touch-action:none; user-select:none;
-    }
-    .cube:active{cursor:grabbing}
-
-    .face{
-      position:absolute; width:var(--size); height:var(--size); left:0; top:0;
-      backface-visibility:hidden; border-radius:12px; overflow:hidden;
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 0 24px rgba(0,0,0,.25);
-    }
-    /* cada face “avança” metade do cubo no seu eixo */
-    .front  { transform: translateZ(var(--half));  background: linear-gradient(145deg,var(--brand1),var(--brand2)); }
-    .back   { transform: rotateY(180deg) translateZ(var(--half)); background: linear-gradient(145deg,#0e1cff,#0a12ff); }
-    .right  { transform: rotateY( 90deg) translateZ(var(--half)); background: linear-gradient(145deg,#3656ff,var(--brand3)); }
-    .left   { transform: rotateY(-90deg) translateZ(var(--half)); background: linear-gradient(145deg,#2a4dff,#162cff); }
-    .top    { transform: rotateX( 90deg) translateZ(var(--half)); background: linear-gradient(145deg,var(--brand4),#4a86ff); }
-    .bottom { transform: rotateX(-90deg) translateZ(var(--half)); background: linear-gradient(145deg,#1a2bff,#0f22ff); }
-
-    /* brilho/translucidez + arestas visíveis pra reforçar o 3D */
-    .face::before{
-      content:""; position:absolute; inset:0; pointer-events:none;
-      background:
-        radial-gradient(120% 90% at 30% 25%, rgba(255,255,255,.35) 0%, rgba(255,255,255,.08) 42%, transparent 72%),
-        linear-gradient(115deg, rgba(255,255,255,.14), rgba(255,255,255,0) 60%);
-      mix-blend-mode:screen;
-    }
-    .face::after{content:""; position:absolute; inset:0; border-radius:12px; border:1px solid rgba(255,255,255,.16); pointer-events:none}
-
-    .halo{
-      position:absolute; inset:-22% -22% -12% -22%; border-radius:50%; pointer-events:none;
+    /* brilho ambiente por trás do cubo */
+    .cube-wrap::before{
+      content:""; position:absolute; inset:-12% -12% -6% -12%;
+      border-radius:50%;
       background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
-      filter: blur(42px); transform: translateZ(-120px);
+      filter: blur(44px);
+      z-index:0;
     }
 
-    /* form */
-    .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:6px; flex-wrap:wrap}
+    /* Canvas WebGL ocupa toda a área do container */
+    #three-canvas{
+      width:100%; height:100%;
+      display:block;
+      touch-action:none;               /* reforça o bloqueio no canvas */
+      border-radius:18px;
+    }
+
+    /* Formulário */
+    .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:8px; flex-wrap:wrap}
     .input{width:min(520px,78vw); height:46px; border-radius:999px; border:1px solid var(--ring); background:rgba(255,255,255,.04); color:var(--text); padding:0 18px; outline:none; font-size:15px; backdrop-filter:blur(4px)}
     .input::placeholder{color:#8a8aa2}
-    .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow:0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10); transition:transform .15s, box-shadow .2s; white-space:nowrap}
-    .btn:hover{transform:translateY(-1px); box-shadow:0 16px 36px rgba(255,255,255,.14)}
+    .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow:0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10); white-space:nowrap}
     .fineprint{color:#7b7b8a; font-size:12px; margin-top:8px}
 
     footer{padding:52px 20px; text-align:center; color:#7b7b8a; font-size:12px}
 
-    /* responsivo */
     @media (max-width:640px){
-      :root{ --size: 220px; --half: 110px; }
-      .cube-wrap{width:360px; height:360px}
-      .scene{transform: scale(.95)}
       .brand{font-size:clamp(26px,8vw,38px)}
       .title{font-size:clamp(16px,5vw,24px)}
       .subtitle{font-size:clamp(11px,3.2vw,13px)}
@@ -120,18 +90,9 @@
       <h1 class="title">Presence. Identity. Precision.</h1>
       <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
 
-      <div class="cube-wrap">
-        <div class="scene" id="scene">
-          <div class="cube" id="cube">
-            <div class="face front"></div>
-            <div class="face back"></div>
-            <div class="face right"></div>
-            <div class="face left"></div>
-            <div class="face top"></div>
-            <div class="face bottom"></div>
-            <div class="halo"></div>
-          </div>
-        </div>
+      <!-- CONTAINER DO CUBO 3D -->
+      <div class="cube-wrap" id="cube-wrap">
+        <canvas id="three-canvas"></canvas>
       </div>
 
       <form class="form" action="#" method="post" onsubmit="event.preventDefault(); alert('Reserved. Welcome to the circle.');">
@@ -144,51 +105,100 @@
 
   <footer>© 2025 Otenzza.</footer>
 
+  <!-- Three.js (WebGL) + OrbitControls -->
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+  <script src="https://unpkg.com/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
   <script>
-    // Cubo interativo com Pointer Events + bloqueio de scroll na área do cubo
-    (() => {
-      const cube  = document.getElementById('cube');
-      const scene = document.getElementById('scene');
+    (function(){
+      const container = document.getElementById('cube-wrap');
+      const canvas    = document.getElementById('three-canvas');
 
-      // Ângulo inicial para ver 3 faces
-      let rx = -28, ry = 38;
-      let down = false, lx = 0, ly = 0;
+      // ------- Cena, câmera e renderizador
+      const scene  = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+      camera.position.set(3.2, 2.2, 3.6);
 
-      const clamp = (v,min,max)=>Math.max(min,Math.min(max,v));
-      const setRot = () => { cube.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`; };
+      const renderer = new THREE.WebGLRenderer({
+        canvas, antialias:true, alpha:true
+      });
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
 
-      const onDown = (e) => {
-        down = true; lx = e.clientX; ly = e.clientY;
-        scene.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      };
-      const onMove = (e) => {
-        if(!down) return;
-        const dx = e.clientX - lx, dy = e.clientY - ly;
-        ry += dx * 0.45;
-        rx -= dy * 0.45;
-        rx = clamp(rx, -88, 88);
-        setRot();
-        lx = e.clientX; ly = e.clientY;
-        e.preventDefault();
-      };
-      const onUp = (e) => {
-        down = false;
-        try{ scene.releasePointerCapture(e.pointerId); }catch(_){}
-        e.preventDefault();
-      };
+      // ------- Luzes (para material translúcido/brilhante)
+      scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+      const key = new THREE.DirectionalLight(0xffffff, 0.9);
+      key.position.set(3, 4, 5);
+      scene.add(key);
+      const rim = new THREE.PointLight(0x6d8bff, 0.6);
+      rim.position.set(-4, -2, -3);
+      scene.add(rim);
 
-      // Pointer Events unificados
-      scene.addEventListener('pointerdown', onDown);
-      scene.addEventListener('pointermove', onMove);
-      scene.addEventListener('pointerup', onUp);
-      scene.addEventListener('pointercancel', onUp);
-      scene.addEventListener('lostpointercapture', onUp);
+      // ------- Cubo (6 faces reais)
+      const geo = new THREE.BoxGeometry(1,1,1, 1,1,1);
 
-      // não deixa a roda do mouse/gestos rolarem a página sobre o cubo
-      scene.addEventListener('wheel', (e)=>e.preventDefault(), {passive:false});
+      // material azul “vidroso” na linha do seu logo
+      const mat = new THREE.MeshPhysicalMaterial({
+        color: 0x3f64ff,
+        metalness: 0.15,
+        roughness: 0.18,
+        clearcoat: 0.4,
+        clearcoatRoughness: 0.06,
+        transparent: true,
+        opacity: 0.92
+        // (se quiser deixar com refração real, dá pra ligar transmission + envMap)
+      });
 
-      setRot();
+      const cube = new THREE.Mesh(geo, mat);
+      scene.add(cube);
+
+      // Arestas sutis (para reforçar a percepção de volume)
+      const edges = new THREE.EdgesGeometry(geo);
+      const line  = new THREE.LineSegments(
+        edges,
+        new THREE.LineBasicMaterial({ color: 0xffffff, transparent:true, opacity:0.25 })
+      );
+      cube.add(line);
+
+      // ------- Controles (arrasta pra girar; sem zoom/pan)
+      const controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableZoom = false;
+      controls.enablePan  = false;
+      controls.rotateSpeed = 0.7;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.autoRotate = false; // se quiser giro automático, troque pra true
+      // ângulo inicial para ver 3 faces
+      controls.setPolarAngle   = undefined;
+      camera.lookAt(cube.position);
+      controls.update();
+
+      // ------- Bloquear scroll na área do cubo (desktop e mobile)
+      // CSS já ajuda (touch-action:none), mas garantimos via eventos:
+      container.addEventListener('wheel', e => e.preventDefault(), { passive:false });
+      container.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+
+      // ------- Responsividade
+      function resize(){
+        const w = container.clientWidth;
+        const h = container.clientHeight;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+
+        // mantém o cubo proporcional ao container
+        const scale = Math.min(w, h) * 0.45; // 45% da menor dimensão
+        cube.scale.setScalar(scale / 200);   // divisor ajusta o tamanho final
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      // ------- Loop
+      function tick(){
+        controls.update();
+        renderer.render(scene, camera);
+        requestAnimationFrame(tick);
+      }
+      tick();
     })();
   </script>
 </body>
