@@ -26,12 +26,13 @@
   .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
   .stack{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%; max-width:1040px}
   .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
-  .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px)}
+  /* reduzir somente o espaço entre título e subtítulo pela metade */
+  .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px); margin-top:-8px;}
 
   .cube-wrap{
     width:min(540px,85vw);
     aspect-ratio: 1 / 1;
-    position:relative; margin:16px 0 18px;
+    position:relative; margin:12px 0 18px;
     touch-action:none; overscroll-behavior:contain; user-select:none;
     display:grid; place-items:center;
   }
@@ -114,33 +115,32 @@
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.05;
-        renderer.physicallyCorrectLights = false; // (shader próprio)
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // ⚡ leve
+        renderer.toneMappingExposure = 1.06;
+        renderer.physicallyCorrectLights = false;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // leve
 
         scene  = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
         camera.position.set(0, 0, 3.6);
         camera.lookAt(0,0,0);
 
-        // Geometria (subdividida só um pouco para specular mais bonito)
         const geo = new THREE.BoxGeometry(1,1,1, 2,2,2);
 
-        // --- Shader leve (Lambert + Specular + Fresnel + “edge glow” + grão) ---
+        // Shader leve — AZUL mais saturado
         const mat = new THREE.ShaderMaterial({
           uniforms:{
-            uColorDark: {value: new THREE.Color(0x1f4fbf)},
-            uColorLite: {value: new THREE.Color(0x67b2ff)},
-            uSpecColor: {value: new THREE.Color(0xbfdfff)},
+            uColorDark: {value: new THREE.Color(0x1549ff)}, // mais saturado
+            uColorLite: {value: new THREE.Color(0x6abaff)}, // highlight mais vivo
+            uSpecColor: {value: new THREE.Color(0xd4ecff)},
             uLightDir:  {value: new THREE.Vector3(0.6,0.8,0.7).normalize()},
             uAmbient:   {value: 0.28},
-            uShininess: {value: 38.0},
-            uRimGain:   {value: 0.60},
+            uShininess: {value: 42.0},
+            uRimGain:   {value: 0.65},
             uRimPower:  {value: 2.1},
             uTime:      {value: 0.0},
           },
           vertexShader: `
-            varying vec3 vN, vW, vPos; // normal, worldPos, objPos
+            varying vec3 vN, vW, vPos;
             void main(){
               vN = normalize(normalMatrix * normal);
               vec4 wp = modelMatrix * vec4(position,1.0);
@@ -156,7 +156,6 @@
             uniform float uAmbient, uShininess, uRimGain, uRimPower;
             uniform float uTime;
 
-            // ruído barato p/ grão/dither
             float rnd(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
 
             void main(){
@@ -165,26 +164,22 @@
               vec3 V = normalize(cameraPosition - vW);
               vec3 H = normalize(L + V);
 
-              float ndl = max(dot(N,L), 0.0);         // difusa
+              float ndl = max(dot(N,L), 0.0);
               float ndh = max(dot(N,H), 0.0);
-              float spec = pow(ndh, uShininess) * 0.9; // especular
+              float spec = pow(ndh, uShininess) * 0.9;
 
-              // gradiente azul sutil (não “chapado”)
               float g = 0.5 + 0.5*N.y;
               vec3 base = mix(uColorDark, uColorLite, g);
 
-              // realce de bordas (simula espessura)
               vec3 d = smoothstep(0.44, 0.495, abs(vPos));
               float edge = max(max(min(d.x,d.y), min(d.y,d.z)), min(d.x,d.z));
-              edge = pow(edge, 1.4);
+              edge = pow(edge, 1.35);
 
-              // Fresnel (rim)
               float rim = pow(1.0 - max(dot(N,V), 0.0), uRimPower) * uRimGain;
 
-              // grão/dither sutil
               float grain = (rnd(gl_FragCoord.xy + vec2(uTime*60.0, 0.0)) - 0.5) * 0.02;
 
-              vec3 color = base * (uAmbient + ndl*0.9) + uSpecColor * spec + (uColorLite*0.6)*edge + (uColorLite*0.5)*rim;
+              vec3 color = base * (uAmbient + ndl*0.9) + uSpecColor * spec + (uColorLite*0.65)*edge + (uColorLite*0.55)*rim;
               color += grain;
 
               gl_FragColor = vec4(color, 1.0);
@@ -196,7 +191,7 @@
         cubeMesh = new THREE.Mesh(geo, mat);
         scene.add(cubeMesh);
 
-        // Dois rims extras bem baratinhos (additive) para aresta “de vidro”
+        // Rims leves para arestas
         function rimMaterial(colorHex, power, gain){
           return new THREE.ShaderMaterial({
             transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
@@ -222,13 +217,12 @@
             `
           });
         }
-        rimA = new THREE.Mesh(geo, rimMaterial(0xcfe8ff, 2.0, 0.70)); rimA.scale.setScalar(1.002); rimA.renderOrder=2; cubeMesh.add(rimA);
-        rimB = new THREE.Mesh(geo, rimMaterial(0x3f7cff, 2.6, 0.55)); rimB.scale.setScalar(1.001); rimB.renderOrder=1.9; cubeMesh.add(rimB);
+        rimA = new THREE.Mesh(geo, rimMaterial(0xcfe8ff, 2.0, 0.72)); rimA.scale.setScalar(1.002); rimA.renderOrder=2; cubeMesh.add(rimA);
+        rimB = new THREE.Mesh(geo, rimMaterial(0x3f7cff, 2.6, 0.58)); rimB.scale.setScalar(1.001); rimB.renderOrder=1.9; cubeMesh.add(rimB);
 
         applyRot();
         resize();
 
-        // interação + bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
@@ -256,7 +250,7 @@
         renderer.setSize(w, h, false);
         camera.aspect = w/h; camera.updateProjectionMatrix();
         const s = Math.min(w, h);
-        cubeMesh.scale.setScalar(s / 600); // ~60% do “cheio”
+        cubeMesh.scale.setScalar(s / 600 * 1.15); // +15%
       }
       window.addEventListener('resize', resize);
 
