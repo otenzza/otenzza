@@ -38,13 +38,12 @@
   .cube-wrap::before{
     content:""; position:absolute; inset:-12% -12% -6% -12%;
     border-radius:50%;
-    background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
-    filter: blur(42px); z-index:0;
+    background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.40), transparent 72%);
+    filter: blur(44px); z-index:0;
   }
   #three-canvas{
     width:100%; height:100%; display:block;
-    position:relative; z-index:1;
-    touch-action:none; border-radius:18px;
+    position:relative; z-index:1; touch-action:none; border-radius:18px;
   }
 
   .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px; flex-wrap:wrap}
@@ -58,6 +57,7 @@
 <body>
   <header class="topbar">
     <div class="brand" aria-label="Otenzza">
+      <!-- cubinho do logo -->
       <svg class="brand-cube" viewBox="0 0 48 48" aria-hidden="true">
         <defs>
           <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
@@ -106,7 +106,7 @@
       const container = document.getElementById('cube-wrap');
       const canvas    = document.getElementById('three-canvas');
 
-      let renderer, scene, camera, outerCube, rimMesh, volumeCube;
+      let renderer, scene, camera, outerCube, rimA, rimB, volumeCube;
       let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8;
       let idle = true;
 
@@ -114,7 +114,7 @@
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.08;
+        renderer.toneMappingExposure = 1.12;                 // um pouco mais de presença
         renderer.physicallyCorrectLights = true;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -123,74 +123,85 @@
         camera.position.set(0, 0, 3.8);
         camera.lookAt(0,0,0);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-        const key = new THREE.DirectionalLight(0xffffff, 1.15); key.position.set(3.5,4,5); scene.add(key);
-        const fill = new THREE.DirectionalLight(0x8bbcff, 0.65); fill.position.set(-4,-2,-3); scene.add(fill);
-        const bounce = new THREE.PointLight(0x3a66ff, 0.7, 8); bounce.position.set(0,-2,0); scene.add(bounce);
+        /* Luz */
+        scene.add(new THREE.AmbientLight(0xbfd9ff, 0.55));
+        const key = new THREE.DirectionalLight(0xffffff, 1.25); key.position.set(3.5,4.2,5.2); scene.add(key);
+        const fill = new THREE.DirectionalLight(0x8bbcff, 0.7); fill.position.set(-4,-2.2,-3.2); scene.add(fill);
+        const bounce = new THREE.PointLight(0x2b5dff, 0.9, 8); bounce.position.set(0,-2,0); scene.add(bounce);
 
         const geo = new THREE.BoxGeometry(1,1,1);
 
-        /* Vidro externo — depthWrite DESLIGADO para o volume aparecer */
+        /* Vidro “grosso”/azulado: transmission + tint + sem depthWrite */
         const outerMat = new THREE.MeshPhysicalMaterial({
-          color: 0x7bb6ff,
+          color: 0x5aa0ff,            // base mais azul
           metalness: 0.0,
-          roughness: 0.10,
-          clearcoat: 0.9,
-          clearcoatRoughness: 0.06,
+          roughness: 0.07,
+          clearcoat: 0.95,
+          clearcoatRoughness: 0.05,
           transparent: true,
-          opacity: 0.38,
+          opacity: 0.52,              // um pouco mais opaco -> aspecto de vidro espesso
           transmission: 1.0,
-          ior: 1.31,
-          thickness: 1.8,
-          attenuationColor: new THREE.Color(0x9ed9ff),
-          attenuationDistance: 3.0,
-          depthWrite: false    /* <- crucial */
+          ior: 1.33,                  // vidro/água
+          thickness: 2.6,             // “paredes” mais grossas = bordas com cor
+          attenuationColor: new THREE.Color(0x62b7ff),
+          attenuationDistance: 1.55,  // mais curto => mais cor azul
+          depthWrite: false           // não mata o volume
         });
         outerCube = new THREE.Mesh(geo, outerMat);
-        outerCube.renderOrder = 2;    /* desenha depois do volume */
+        outerCube.renderOrder = 2;
         scene.add(outerCube);
 
-        /* Fresnel (brilho de borda) */
-        const rimShader = new THREE.ShaderMaterial({
-          transparent:true, depthWrite:false,
-          blending: THREE.AdditiveBlending,
-          uniforms:{
-            uColor: {value: new THREE.Color(0xbfe6ff)},
-            uPower: {value: 2.0},
-            uGain:  {value: 0.6}
-          },
-          vertexShader: `
-            varying vec3 vN; varying vec3 vW;
-            void main(){
-              vN = normalize(normalMatrix * normal);
-              vec4 wp = modelMatrix * vec4(position,1.0);
-              vW = wp.xyz;
-              gl_Position = projectionMatrix * viewMatrix * wp;
-            }
-          `,
-          fragmentShader: `
-            uniform vec3 uColor; uniform float uPower; uniform float uGain;
-            varying vec3 vN; varying vec3 vW;
-            void main(){
-              vec3 V = normalize(cameraPosition - vW);
-              float f = pow(1.0 - max(dot(normalize(vN), V), 0.0), uPower);
-              gl_FragColor = vec4(uColor * f * uGain, f * uGain);
-            }
-          `
-        });
-        rimMesh = new THREE.Mesh(geo, rimShader);
-        rimMesh.scale.setScalar(1.002);
-        rimMesh.renderOrder = 3;      /* depois do vidro */
-        outerCube.add(rimMesh);
+        /* Dois rims (Fresnel) para borda com camada de luz */
+        function makeRim(colorHex, power, gain){
+          return new THREE.ShaderMaterial({
+            transparent:true, depthWrite:false,
+            blending: THREE.AdditiveBlending,
+            uniforms:{
+              uColor: {value: new THREE.Color(colorHex)},
+              uPower: {value: power},
+              uGain:  {value: gain}
+            },
+            vertexShader: `
+              varying vec3 vN; varying vec3 vW;
+              void main(){
+                vN = normalize(normalMatrix * normal);
+                vec4 wp = modelMatrix * vec4(position,1.0);
+                vW = wp.xyz;
+                gl_Position = projectionMatrix * viewMatrix * wp;
+              }
+            `,
+            fragmentShader: `
+              uniform vec3 uColor; uniform float uPower; uniform float uGain;
+              varying vec3 vN; varying vec3 vW;
+              void main(){
+                vec3 V = normalize(cameraPosition - vW);
+                float f = pow(1.0 - max(dot(normalize(vN), V), 0.0), uPower);
+                gl_FragColor = vec4(uColor * f * uGain, f * uGain);
+              }
+            `
+          });
+        }
+        rimA = new THREE.Mesh(geo, makeRim(0xbfe6ff, 2.2, 0.85));  // claro
+        rimA.scale.setScalar(1.003);
+        rimA.renderOrder = 3;
+        outerCube.add(rimA);
 
-        /* Volume interno — fluido com raymarch (ordem 1) */
+        rimB = new THREE.Mesh(geo, makeRim(0x3f7cff, 2.8, 0.65));  // azul profundo por baixo
+        rimB.scale.setScalar(1.001);
+        rimB.renderOrder = 2.9;
+        outerCube.add(rimB);
+
+        /* Volume interno — fluido HD com jitter + domain-warp + curl */
         const volumeUniforms = {
           uTime:      { value: 0 },
           uModelInv:  { value: new THREE.Matrix4() },
-          uColor:     { value: new THREE.Color(0x79c6ff) },
-          uIntensity: { value: 1.8 },  // mais vivo
-          uSteps:     { value: 48 }
+          uColorA:    { value: new THREE.Color(0x6fc3ff) }, // base
+          uColorB:    { value: new THREE.Color(0xc4e7ff) }, // highlights
+          uIntensity: { value: 2.15 },                      // força do brilho interno
+          uSteps:     { value: 84 },                        // + passos = + qualidade
+          uSeed:      { value: Math.random()*1000.0 }       // jitter
         };
+
         const volumeMat = new THREE.ShaderMaterial({
           uniforms: volumeUniforms,
           transparent: true,
@@ -208,44 +219,56 @@
           fragmentShader: `
             precision highp float;
             varying vec3 vWorldPos;
-            uniform mat4 uModelInv;
+            uniform mat4  uModelInv;
             uniform float uTime;
-            uniform vec3  uColor;
             uniform float uIntensity;
             uniform int   uSteps;
+            uniform float uSeed;
+            uniform vec3  uColorA, uColorB;
 
-            float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7, 74.7))) * 43758.5453); }
+            /* rand / noise ------------------------------------------------- */
+            float hash1(float n){ return fract(sin(n)*43758.5453); }
+            float hash3(vec3 p){ return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453); }
+
             float noise(vec3 x){
-              vec3 i = floor(x), f = fract(x), u = f*f*(3.0-2.0*f);
-              float n000 = hash(i+vec3(0,0,0));
-              float n100 = hash(i+vec3(1,0,0));
-              float n010 = hash(i+vec3(0,1,0));
-              float n110 = hash(i+vec3(1,1,0));
-              float n001 = hash(i+vec3(0,0,1));
-              float n101 = hash(i+vec3(1,0,1));
-              float n011 = hash(i+vec3(0,1,1));
-              float n111 = hash(i+vec3(1,1,1));
-              float n00 = mix(n000,n100,u.x);
-              float n01 = mix(n001,n101,u.x);
-              float n10 = mix(n010,n110,u.x);
-              float n11 = mix(n011,n111,u.x);
-              float n0 = mix(n00,n10,u.y);
-              float n1 = mix(n01,n11,u.y);
+              vec3 i=floor(x), f=fract(x), u=f*f*(3.0-2.0*f);
+              float n000=hash3(i+vec3(0,0,0)), n100=hash3(i+vec3(1,0,0));
+              float n010=hash3(i+vec3(0,1,0)), n110=hash3(i+vec3(1,1,0));
+              float n001=hash3(i+vec3(0,0,1)), n101=hash3(i+vec3(1,0,1));
+              float n011=hash3(i+vec3(0,1,1)), n111=hash3(i+vec3(1,1,1));
+              float n00=mix(n000,n100,u.x), n01=mix(n001,n101,u.x);
+              float n10=mix(n010,n110,u.x), n11=mix(n011,n111,u.x);
+              float n0=mix(n00,n10,u.y), n1=mix(n01,n11,u.y);
               return mix(n0,n1,u.z);
             }
+
+            /* FBM com domain-warp ------------------------------------------ */
             float fbm(vec3 p){
-              float v=0.0; float a=0.55; vec3 shift = vec3(10.3,19.7,7.1);
-              for(int i=0;i<5;i++){ v += a*noise(p); p = p*2.02 + shift; a *= 0.5; }
+              float v=0.0; float a=0.55; vec3 shift=vec3(10.3,19.7,7.1);
+              for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.02+shift; a*=0.5; }
               return v;
             }
-            vec2 boxIntersect(vec3 ro, vec3 rd){
-              vec3 mn = vec3(-0.5), mx = vec3(0.5);
-              vec3 t0 = (mn - ro)/rd, t1 = (mx - ro)/rd;
-              vec3 tmin = min(t0,t1), tmax = max(t0,t1);
-              float tE = max(max(tmin.x,tmin.y),tmin.z);
-              float tX = min(min(tmax.x,tmax.y),tmax.z);
-              return vec2(tE, tX);
+
+            /* Curl-noise simples (aprox) para fluxo suave ------------------ */
+            vec3 curl(vec3 p){
+              float e=0.2;
+              vec3 dx=vec3(e,0,0), dy=vec3(0,e,0), dz=vec3(0,0,e);
+              float x = fbm(p+dy)-fbm(p-dy) - (fbm(p+dz)-fbm(p-dz));
+              float y = fbm(p+dz)-fbm(p-dz) - (fbm(p+dx)-fbm(p-dx));
+              float z = fbm(p+dx)-fbm(p-dx) - (fbm(p+dy)-fbm(p-dy));
+              return normalize(vec3(x,y,z));
             }
+
+            /* Ray/AABB [-0.49,0.49] evita z-fight com o vidro -------------- */
+            vec2 boxIntersect(vec3 ro, vec3 rd){
+              vec3 mn=vec3(-0.49), mx=vec3(0.49);
+              vec3 t0=(mn-ro)/rd, t1=(mx-ro)/rd;
+              vec3 tmin=min(t0,t1), tmax=max(t0,t1);
+              float tE=max(max(tmin.x,tmin.y),tmin.z);
+              float tX=min(min(tmax.x,tmax.y),tmax.z);
+              return vec2(tE,tX);
+            }
+
             void main(){
               vec3 roW = cameraPosition;
               vec3 rdW = normalize(vWorldPos - cameraPosition);
@@ -255,33 +278,57 @@
               vec2 tb = boxIntersect(ro, rd);
               if(tb.x>tb.y) discard;
 
-              float t0 = max(tb.x, 0.0), t1 = tb.y;
+              float t0 = max(tb.x,0.0), t1=tb.y;
               float steps = float(uSteps);
               float dt = (t1 - t0) / steps;
+
+              /* Jitter do primeiro sample para desfocar “steps” (anti-banding) */
+              float rnd = hash1(dot(rd, vec3(12.9898,78.233,37.719)) + uSeed);
+              float t = t0 + (rnd)*dt;
 
               vec3  col = vec3(0.0);
               float acc = 0.0;
 
-              for(int i=0;i<96;i++){
+              /* parâmetros do fluido */
+              float speed = 0.42;        // velocidade geral
+              float densK = 0.08;        // densidade por passo
+              float warp  = 0.65;        // força do domain-warp
+
+              for(int i=0;i<120;i++){
                 if(float(i)>=steps) break;
-                float t = t0 + (float(i)+0.5)*dt;
+
                 vec3 p = ro + rd*t;
-                vec3 q = p*3.8 + vec3(0.22*uTime, 0.16*uTime, -0.19*uTime);
-                float d = smoothstep(0.45, 0.95, fbm(q));
-                d *= 0.07;                    // densidade por passo (um pouco maior)
-                col += d * uColor * uIntensity;
+
+                /* campo animado: mistura fbm + curl para “água corrente” */
+                vec3 q = p*4.0;
+                q += speed*uTime*vec3(0.24, 0.17, -0.21);
+                vec3 w = curl(q*0.9 + vec3(0.0, 0.7*uTime, 0.3*uTime));
+                q += warp * w;
+
+                float d = fbm(q);
+                d = smoothstep(0.40, 0.98, d);  // contraste do fluido
+                d *= densK;
+
+                /* coloração bicolor (profundo + highlights) */
+                vec3 c = mix(uColorA, uColorB, clamp(d*3.0, 0.0, 1.0));
+                col += c * d * uIntensity;
                 acc += d;
-                if(acc>1.25) break;
+
+                if(acc>1.35) break;      // saturou a luz interna
+
+                t += dt;
               }
+
               col = clamp(col, 0.0, 1.0);
               float alpha = clamp(acc, 0.0, 1.0);
               gl_FragColor = vec4(col, alpha);
             }
           `
         });
+
         volumeCube = new THREE.Mesh(geo, volumeMat);
-        volumeCube.scale.setScalar(0.98);
-        volumeCube.renderOrder = 1;   /* desenha antes do vidro */
+        volumeCube.scale.setScalar(0.985);      // levemente menor, “imerso” no vidro
+        volumeCube.renderOrder = 1;
         outerCube.add(volumeCube);
 
         applyRot();
@@ -297,8 +344,8 @@
         function tick(now){
           const dt = Math.min(0.05, (now - last)/1000); last = now;
 
-          if(idle){ ry += 0.0010; applyRot(); }        // giro bem lento
-          volumeMat.uniforms.uTime.value += dt * 0.50; // fluido lento
+          if(idle){ ry += 0.0010; applyRot(); }         // giro muito suave
+          volumeMat.uniforms.uTime.value += dt;         // animação fluida
           volumeMat.uniforms.uModelInv.value.copy(volumeCube.matrixWorld).invert();
 
           renderer.render(scene, camera);
