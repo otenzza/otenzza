@@ -19,18 +19,15 @@
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
 
-  /* topo / marca */
   .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
   .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
   .brand-cube{width:28px; height:auto; display:block}
 
-  /* hero */
   .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
   .stack{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%; max-width:1040px}
   .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
   .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px)}
 
-  /* Área do cubo – sempre quadrada */
   .cube-wrap{
     width:min(540px,85vw);
     aspect-ratio: 1 / 1;
@@ -50,26 +47,17 @@
     touch-action:none; border-radius:18px;
   }
 
-  /* form */
   .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:10px; flex-wrap:wrap}
   .input{width:min(520px,78vw); height:46px; border-radius:999px; border:1px solid var(--ring); background:rgba(255,255,255,.04); color:var(--text); padding:0 18px; outline:none; font-size:15px; backdrop-filter:blur(4px)}
   .input::placeholder{color:#8a8aa2}
-  .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow:0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10); white-space:nowrap}
+  .btn{height:46px; border-radius:999px; padding:0 20px; border:1px solid rgba(255,255,255,.22); font-weight:800; cursor:pointer; background:#fff; color:#0a0a0d; box-shadow:0 2px 0 rgba(255,255,255,.6) inset, 0 12px 30px rgba(255,255,255,.10)}
   .fineprint{color:#7b7b8a; font-size:12px; margin-top:8px}
-
   footer{padding:52px 20px; text-align:center; color:#7b7b8a; font-size:12px}
-
-  @media (max-width:640px){
-    .brand{font-size:clamp(26px,8vw,38px)}
-    .title{font-size:clamp(16px,5vw,24px)}
-    .subtitle{font-size:clamp(11px,3.2vw,13px)}
-  }
 </style>
 </head>
 <body>
   <header class="topbar">
     <div class="brand" aria-label="Otenzza">
-      <!-- cubinho do logo -->
       <svg class="brand-cube" viewBox="0 0 48 48" aria-hidden="true">
         <defs>
           <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
@@ -98,7 +86,6 @@
       <h1 class="title">Presence. Identity. Precision.</h1>
       <p class="subtitle">A private, intentional space. No feed. No vanity metrics. Just your Cube.</p>
 
-      <!-- CUBO 3D -->
       <div class="cube-wrap" id="cube-wrap">
         <canvas id="three-canvas"></canvas>
       </div>
@@ -113,7 +100,6 @@
 
   <footer>© 2025 Otenzza.</footer>
 
-  <!-- Three.js -->
   <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
   <script>
     (function(){
@@ -128,7 +114,7 @@
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.05;
+        renderer.toneMappingExposure = 1.08;
         renderer.physicallyCorrectLights = true;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -137,33 +123,34 @@
         camera.position.set(0, 0, 3.8);
         camera.lookAt(0,0,0);
 
-        /* Luzes */
         scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-        const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3.5,4,5); scene.add(key);
-        const fill = new THREE.DirectionalLight(0x8bbcff, 0.6); fill.position.set(-4,-2,-3); scene.add(fill);
+        const key = new THREE.DirectionalLight(0xffffff, 1.15); key.position.set(3.5,4,5); scene.add(key);
+        const fill = new THREE.DirectionalLight(0x8bbcff, 0.65); fill.position.set(-4,-2,-3); scene.add(fill);
         const bounce = new THREE.PointLight(0x3a66ff, 0.7, 8); bounce.position.set(0,-2,0); scene.add(bounce);
 
         const geo = new THREE.BoxGeometry(1,1,1);
 
-        /* ——— CUBO EXTERNO (vidro/“gelo” translúcido) ——— */
+        /* Vidro externo — depthWrite DESLIGADO para o volume aparecer */
         const outerMat = new THREE.MeshPhysicalMaterial({
           color: 0x7bb6ff,
           metalness: 0.0,
-          roughness: 0.10,          // menos fosco, mais vítreo
+          roughness: 0.10,
           clearcoat: 0.9,
           clearcoatRoughness: 0.06,
           transparent: true,
-          opacity: 0.42,            // vidro leve
-          transmission: 1.0,        // máxima translucidez
-          ior: 1.31,                // gelo
+          opacity: 0.38,
+          transmission: 1.0,
+          ior: 1.31,
           thickness: 1.8,
           attenuationColor: new THREE.Color(0x9ed9ff),
-          attenuationDistance: 3.0
+          attenuationDistance: 3.0,
+          depthWrite: false    /* <- crucial */
         });
         outerCube = new THREE.Mesh(geo, outerMat);
+        outerCube.renderOrder = 2;    /* desenha depois do volume */
         scene.add(outerCube);
 
-        /* ——— BRILHO DE ARESTA (Fresnel) ——— */
+        /* Fresnel (brilho de borda) */
         const rimShader = new THREE.ShaderMaterial({
           transparent:true, depthWrite:false,
           blending: THREE.AdditiveBlending,
@@ -173,8 +160,7 @@
             uGain:  {value: 0.6}
           },
           vertexShader: `
-            varying vec3 vN;
-            varying vec3 vW;
+            varying vec3 vN; varying vec3 vW;
             void main(){
               vN = normalize(normalMatrix * normal);
               vec4 wp = modelMatrix * vec4(position,1.0);
@@ -183,11 +169,8 @@
             }
           `,
           fragmentShader: `
-            uniform vec3 uColor;
-            uniform float uPower;
-            uniform float uGain;
-            varying vec3 vN;
-            varying vec3 vW;
+            uniform vec3 uColor; uniform float uPower; uniform float uGain;
+            varying vec3 vN; varying vec3 vW;
             void main(){
               vec3 V = normalize(cameraPosition - vW);
               float f = pow(1.0 - max(dot(normalize(vN), V), 0.0), uPower);
@@ -197,17 +180,17 @@
         });
         rimMesh = new THREE.Mesh(geo, rimShader);
         rimMesh.scale.setScalar(1.002);
+        rimMesh.renderOrder = 3;      /* depois do vidro */
         outerCube.add(rimMesh);
 
-        /* ——— VOLUME INTERNO (fluido real com raymarching) ——— */
+        /* Volume interno — fluido com raymarch (ordem 1) */
         const volumeUniforms = {
           uTime:      { value: 0 },
           uModelInv:  { value: new THREE.Matrix4() },
-          uColor:     { value: new THREE.Color(0x79c6ff) }, // azul vivo
-          uIntensity: { value: 1.2 },                       // brilho do fluido
-          uSteps:     { value: 48 }                         // passos do raymarch (48 é leve/bonito)
+          uColor:     { value: new THREE.Color(0x79c6ff) },
+          uIntensity: { value: 1.8 },  // mais vivo
+          uSteps:     { value: 48 }
         };
-
         const volumeMat = new THREE.ShaderMaterial({
           uniforms: volumeUniforms,
           transparent: true,
@@ -225,20 +208,15 @@
           fragmentShader: `
             precision highp float;
             varying vec3 vWorldPos;
-
             uniform mat4 uModelInv;
             uniform float uTime;
             uniform vec3  uColor;
             uniform float uIntensity;
             uniform int   uSteps;
 
-            /* ---- helpers ---- */
             float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7, 74.7))) * 43758.5453); }
-
             float noise(vec3 x){
-              vec3 i = floor(x);
-              vec3 f = fract(x);
-              vec3 u = f*f*(3.0-2.0*f);
+              vec3 i = floor(x), f = fract(x), u = f*f*(3.0-2.0*f);
               float n000 = hash(i+vec3(0,0,0));
               float n100 = hash(i+vec3(1,0,0));
               float n010 = hash(i+vec3(0,1,0));
@@ -255,95 +233,72 @@
               float n1 = mix(n01,n11,u.y);
               return mix(n0,n1,u.z);
             }
-
             float fbm(vec3 p){
               float v=0.0; float a=0.55; vec3 shift = vec3(10.3,19.7,7.1);
-              for(int i=0;i<5;i++){
-                v += a*noise(p); p = p*2.02 + shift; a *= 0.5;
-              }
+              for(int i=0;i<5;i++){ v += a*noise(p); p = p*2.02 + shift; a *= 0.5; }
               return v;
             }
-
-            /* ray-box: retorna (tEnter, tExit) na AABB [-0.5,0.5] */
             vec2 boxIntersect(vec3 ro, vec3 rd){
               vec3 mn = vec3(-0.5), mx = vec3(0.5);
-              vec3 t0 = (mn - ro)/rd;
-              vec3 t1 = (mx - ro)/rd;
-              vec3 tmin = min(t0,t1);
-              vec3 tmax = max(t0,t1);
+              vec3 t0 = (mn - ro)/rd, t1 = (mx - ro)/rd;
+              vec3 tmin = min(t0,t1), tmax = max(t0,t1);
               float tE = max(max(tmin.x,tmin.y),tmin.z);
               float tX = min(min(tmax.x,tmax.y),tmax.z);
               return vec2(tE, tX);
             }
-
             void main(){
-              /* ray em espaço do objeto */
               vec3 roW = cameraPosition;
               vec3 rdW = normalize(vWorldPos - cameraPosition);
               vec3 ro  = (uModelInv * vec4(roW,1.0)).xyz;
               vec3 rd  = normalize((uModelInv * vec4(rdW,0.0)).xyz);
 
               vec2 tb = boxIntersect(ro, rd);
-              if(tb.x>tb.y) discard;              // sem interseção
+              if(tb.x>tb.y) discard;
 
-              float t0 = max(tb.x, 0.0);
-              float t1 = tb.y;
-
-              /* passos do raymarch */
+              float t0 = max(tb.x, 0.0), t1 = tb.y;
               float steps = float(uSteps);
               float dt = (t1 - t0) / steps;
+
               vec3  col = vec3(0.0);
               float acc = 0.0;
 
-              for(int i=0;i<96;i++){              // limite máximo
+              for(int i=0;i<96;i++){
                 if(float(i)>=steps) break;
                 float t = t0 + (float(i)+0.5)*dt;
-                vec3 p = ro + rd*t;               // ponto em obj space (-.5..+.5)
-                vec3 q = p*4.0;                   // escala do ruído (veias finas)
-                /* animação suave e lenta do "líquido" */
-                q += vec3(0.0, 0.0, 0.0) + vec3(0.25*uTime, 0.18*uTime, -0.22*uTime);
-
-                float d = fbm(q);                 // densidade
-                d = smoothstep(0.45, 0.95, d);    // contraste do fluido
-                d *= 0.06;                        // densidade por passo
-
+                vec3 p = ro + rd*t;
+                vec3 q = p*3.8 + vec3(0.22*uTime, 0.16*uTime, -0.19*uTime);
+                float d = smoothstep(0.45, 0.95, fbm(q));
+                d *= 0.07;                    // densidade por passo (um pouco maior)
                 col += d * uColor * uIntensity;
                 acc += d;
-
-                if(acc>1.2) break;                // corta quando já está brilhante
+                if(acc>1.25) break;
               }
-
               col = clamp(col, 0.0, 1.0);
               float alpha = clamp(acc, 0.0, 1.0);
-
               gl_FragColor = vec4(col, alpha);
             }
           `
         });
-
         volumeCube = new THREE.Mesh(geo, volumeMat);
-        volumeCube.scale.setScalar(0.98);              // ligeiramente menor, fica “dentro”
+        volumeCube.scale.setScalar(0.98);
+        volumeCube.renderOrder = 1;   /* desenha antes do vidro */
         outerCube.add(volumeCube);
 
         applyRot();
         resize();
 
-        // Interação + bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
         canvas.addEventListener('pointercancel', onUp, {passive:false});
         canvas.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
 
-        // Loop
         let last = performance.now();
         function tick(now){
           const dt = Math.min(0.05, (now - last)/1000); last = now;
 
-          if(idle){ ry += 0.0011; applyRot(); }  // giro automático BEM lento
-
-          // atualiza tempo e matriz inversa p/ raymarch
-          volumeMat.uniforms.uTime.value += dt * 0.65;    // velocidade do “líquido”
+          if(idle){ ry += 0.0010; applyRot(); }        // giro bem lento
+          volumeMat.uniforms.uTime.value += dt * 0.50; // fluido lento
           volumeMat.uniforms.uModelInv.value.copy(volumeCube.matrixWorld).invert();
 
           renderer.render(scene, camera);
@@ -353,39 +308,16 @@
       }
 
       function applyRot(){ outerCube.rotation.x = rx; outerCube.rotation.y = ry; }
-
-      function onDown(e){
-        dragging = true; idle = false; lx = e.clientX; ly = e.clientY;
-        canvas.setPointerCapture(e.pointerId);
-        e.preventDefault();
-      }
-      function onMove(e){
-        if(!dragging) return;
-        const dx = e.clientX - lx;
-        const dy = e.clientY - ly;
-        ry += dx * 0.01;
-        rx -= dy * 0.01;
-        rx = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, rx));
-        applyRot();
-        lx = e.clientX; ly = e.clientY;
-        e.preventDefault();
-      }
-      function onUp(e){
-        dragging = false; idle = true;
-        try{ canvas.releasePointerCapture(e.pointerId); }catch(_){}
-        e.preventDefault();
-      }
+      function onDown(e){ dragging=true; idle=false; lx=e.clientX; ly=e.clientY; canvas.setPointerCapture(e.pointerId); e.preventDefault(); }
+      function onMove(e){ if(!dragging)return; const dx=e.clientX-lx, dy=e.clientY-ly; ry+=dx*0.01; rx-=dy*0.01; rx=Math.max(-Math.PI/2+0.05, Math.min(Math.PI/2-0.05, rx)); applyRot(); lx=e.clientX; ly=e.clientY; e.preventDefault(); }
+      function onUp(e){ dragging=false; idle=true; try{canvas.releasePointerCapture(e.pointerId);}catch(_){} e.preventDefault(); }
 
       function resize(){
-        const w = container.clientWidth;
-        const h = container.clientHeight;
+        const w = container.clientWidth, h = container.clientHeight;
         renderer.setSize(w, h, false);
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-
-        // tamanho do cubo (mantido ~60% menor do que o “cheio”)
+        camera.aspect = w/h; camera.updateProjectionMatrix();
         const s = Math.min(w, h);
-        outerCube.scale.setScalar(s / 600);
+        outerCube.scale.setScalar(s / 600);  // ~60% do “cheio”
       }
       window.addEventListener('resize', resize);
 
