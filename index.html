@@ -120,30 +120,15 @@
       const container = document.getElementById('cube-wrap');
       const canvas    = document.getElementById('three-canvas');
 
-      let renderer, scene, camera, outerCube, glowCube;
+      let renderer, scene, camera, outerCube, rimMesh, innerLights=[];
       let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8;
       let idle = true;
-
-      /* === textura radial leve p/ “luz interna” (canvas) === */
-      function makeRadialGlow(size=256, inner=[170,230,255], outer=[40,110,255]){
-        const c = document.createElement('canvas'); c.width=c.height=size;
-        const ctx = c.getContext('2d');
-        const g = ctx.createRadialGradient(size*0.5, size*0.5, size*0.05, size*0.5, size*0.5, size*0.48);
-        g.addColorStop(0, `rgba(${inner[0]},${inner[1]},${inner[2]},1)`);
-        g.addColorStop(1, `rgba(${outer[0]},${outer[1]},${outer[2]},0)`);
-        ctx.fillStyle = g; ctx.fillRect(0,0,size,size);
-        const tex = new THREE.CanvasTexture(c);
-        tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
-        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
-        tex.anisotropy = 8;
-        return tex;
-      }
 
       function init(){
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
         if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.0;
+        renderer.toneMappingExposure = 1.05;
         renderer.physicallyCorrectLights = true;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
@@ -152,48 +137,84 @@
         camera.position.set(0, 0, 3.8);
         camera.lookAt(0,0,0);
 
-        /* luzes suaves */
+        /* luzes do ambiente */
         scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-        const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(3,4,5); scene.add(dir);
-        const rim = new THREE.PointLight(0x6d8bff, 0.7); rim.position.set(-4,-2,-3); scene.add(rim);
+        const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3.5, 4, 5); scene.add(key);
+        const fill = new THREE.DirectionalLight(0x8bbcff, 0.6); fill.position.set(-4, -2, -3); scene.add(fill);
+        const bounce = new THREE.PointLight(0x3a66ff, 0.6, 8); bounce.position.set(0,-2,0); scene.add(bounce);
 
         const geo = new THREE.BoxGeometry(1,1,1);
 
-        /* cubo externo — “gelo luminoso” (translúcido/fosco) */
+        /* ——— CUBO EXTERNO (gelo/vidro claro) ——— */
         const outerMat = new THREE.MeshPhysicalMaterial({
-          color: 0x6fb7ff,           // tom geral
+          color: 0x7bb6ff,
           metalness: 0.0,
-          roughness: 0.28,           // fosco leve (gelo)
-          clearcoat: 0.6,
-          clearcoatRoughness: 0.18,
+          roughness: 0.12,          // menos fosco
+          clearcoat: 0.9,
+          clearcoatRoughness: 0.08,
           transparent: true,
-          opacity: 0.68,
-          transmission: 0.55,        // translucidez (vidro fino)
-          ior: 1.31,                  // índice do gelo
-          thickness: 0.45,
-          attenuationColor: new THREE.Color(0x86c7ff),
-          attenuationDistance: 1.4
+          opacity: 0.5,             // vidro leve
+          transmission: 0.9,        // mais translúcido
+          ior: 1.31,                // gelo
+          thickness: 1.2,
+          attenuationColor: new THREE.Color(0x98d6ff),
+          attenuationDistance: 2.2
         });
         outerCube = new THREE.Mesh(geo, outerMat);
-
-        // arestas discretas para definição de borda
-        const edges = new THREE.EdgesGeometry(geo);
-        outerCube.add(new THREE.LineSegments(
-          edges, new THREE.LineBasicMaterial({color:0xffffff, opacity:0.22, transparent:true})
-        ));
         scene.add(outerCube);
 
-        /* cubo interno — brilho aditivo sutil (parece luz dentro) */
-        const glowTex = makeRadialGlow(256);
-        const glowMat = new THREE.MeshBasicMaterial({
-          map: glowTex, color: 0xffffff,
-          transparent: true, opacity: 0.85,
+        /* ——— Arestas com Fresnel (glow sutil) ——— */
+        const rimShader = new THREE.ShaderMaterial({
+          transparent:true, depthWrite:false,
           blending: THREE.AdditiveBlending,
-          depthWrite: false
+          uniforms:{
+            uColor: {value: new THREE.Color(0x9bd5ff)},
+            uPower: {value: 2.2},
+            uGain:  {value: 0.55}
+          },
+          vertexShader: `
+            varying vec3 vN;
+            varying vec3 vW;
+            void main(){
+              vN = normalize(normalMatrix * normal);
+              vec4 wp = modelMatrix * vec4(position,1.0);
+              vW = wp.xyz;
+              gl_Position = projectionMatrix * viewMatrix * wp;
+            }
+          `,
+          fragmentShader: `
+            uniform vec3 uColor;
+            uniform float uPower;
+            uniform float uGain;
+            varying vec3 vN;
+            varying vec3 vW;
+            void main(){
+              vec3 V = normalize(cameraPosition - vW);
+              float f = pow(1.0 - max(dot(normalize(vN), V), 0.0), uPower);
+              gl_FragColor = vec4(uColor * f * uGain, f * uGain);
+            }
+          `
         });
-        glowCube = new THREE.Mesh(geo, glowMat);
-        glowCube.scale.setScalar(0.86);
-        outerCube.add(glowCube);
+        rimMesh = new THREE.Mesh(geo, rimShader);
+        rimMesh.scale.setScalar(1.002); // um “casco” mínimo por cima
+        outerCube.add(rimMesh);
+
+        /* ——— LUZES INTERNAS (três esferas aditivas, lentas) ——— */
+        const bulbGeo = new THREE.SphereGeometry(0.16, 32, 32);
+        const mkBulb = (hex, op)=> new THREE.MeshBasicMaterial({
+          color: hex, transparent:true, opacity: op,
+          blending: THREE.AdditiveBlending, depthWrite:false
+        });
+        const bulbs = [
+          new THREE.Mesh(bulbGeo, mkBulb(0x8fd1ff, 0.70)),
+          new THREE.Mesh(bulbGeo, mkBulb(0x6fbfff, 0.60)),
+          new THREE.Mesh(bulbGeo, mkBulb(0xc6e9ff, 0.55))
+        ];
+        bulbs.forEach(b=>{
+          b.position.set(0,0,0);
+          outerCube.add(b);
+          innerLights.push(b);
+        });
 
         applyRot();
         resize();
@@ -205,11 +226,33 @@
         canvas.addEventListener('pointercancel', onUp, {passive:false});
         canvas.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
 
-        // animação (glow muito sutil)
-        function tick(){
-          if(idle){ ry += 0.003; applyRot(); }
-          glowCube.rotation.y += 0.08;  // giro leve interno
-          glowCube.rotation.x -= 0.04;
+        // animação lenta
+        let t = 0;
+        function tick(now){
+          const dt = Math.min(0.05, (now??performance.now())/1000 - t);
+          t += dt;
+
+          // giro automático mais devagar
+          if(idle){ ry += 0.0012; applyRot(); }
+
+          // trajetórias suaves (lissajous) bem lentas
+          const s = 0.32;
+          innerLights[0].position.set(
+            Math.sin(t*0.35)*s,
+            Math.sin(t*0.27+1.1)*s,
+            Math.cos(t*0.22+0.6)*s
+          );
+          innerLights[1].position.set(
+            Math.sin(t*0.28+2.2)*s*0.9,
+            Math.cos(t*0.31+0.3)*s*0.9,
+            Math.sin(t*0.26+1.7)*s*0.9
+          );
+          innerLights[2].position.set(
+            Math.cos(t*0.18+0.9)*s*0.75,
+            Math.sin(t*0.21+2.4)*s*0.75,
+            Math.cos(t*0.24+1.9)*s*0.75
+          );
+
           renderer.render(scene, camera);
           requestAnimationFrame(tick);
         }
@@ -247,7 +290,7 @@
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
 
-        // Tamanho do cubo (igual ao “60% menor” que você havia pedido)
+        // 60% menor (o mesmo de antes)
         const s = Math.min(w, h);
         outerCube.scale.setScalar(s / 600);
       }
