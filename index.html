@@ -22,7 +22,7 @@
   /* topo / marca */
   .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
   .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
-  .brand-cube{width:22px; height:auto; display:block} /* Aumentado */
+  .brand-cube{width:28px; height:auto; display:block} /* AUMENTADO */
 
   /* hero */
   .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
@@ -33,22 +33,20 @@
   /* Área do cubo – quadrada SEMPRE e canvas acima do halo */
   .cube-wrap{
     width:min(540px,85vw);
-    aspect-ratio: 1 / 1;          /* garante altura */
+    aspect-ratio: 1 / 1;
     position:relative; margin:16px 0 18px;
-    touch-action:none;            /* bloqueia gestos nessa área */
-    overscroll-behavior:contain;
-    user-select:none;
+    touch-action:none; overscroll-behavior:contain; user-select:none;
     display:grid; place-items:center;
   }
   .cube-wrap::before{
     content:""; position:absolute; inset:-12% -12% -6% -12%;
     border-radius:50%;
     background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
-    filter: blur(42px); z-index:0; /* halo por trás */
+    filter: blur(42px); z-index:0;
   }
   #three-canvas{
     width:100%; height:100%; display:block;
-    position:relative; z-index:1; /* garante que o cubo fica acima do halo */
+    position:relative; z-index:1;
     touch-action:none; border-radius:18px;
   }
 
@@ -123,25 +121,24 @@
       const canvas    = document.getElementById('three-canvas');
 
       let renderer, scene, camera, cube;
-      let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8; // ângulos iniciais (rad) p/ 3 faces
-      let idle = true;                                  // gira levinho quando não está arrastando
+      let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8; // ângulos iniciais (rad)
+      let idle = true;
 
       function init(){
-        // Renderer
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-        // Cena & câmera
         scene  = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-        camera.position.set(2.8, 2.2, 3.2);
 
-        // Luzes
+        /* >>> ALTERAÇÃO: câmera centralizada e um pouco mais distante <<< */
+        camera.position.set(0, 0, 3.8);
+        camera.lookAt(0,0,0);
+
         scene.add(new THREE.AmbientLight(0xffffff, 0.55));
         const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(3,4,5); scene.add(dir);
         const rim = new THREE.PointLight(0x6d8bff, 0.7); rim.position.set(-4,-2,-3); scene.add(rim);
 
-        // Cubo (6 faces reais)
         const geo = new THREE.BoxGeometry(1,1,1);
         const mat = new THREE.MeshPhysicalMaterial({
           color: 0x3f64ff, metalness:0.2, roughness:0.2,
@@ -149,7 +146,6 @@
           transparent:true, opacity:0.96
         });
         cube = new THREE.Mesh(geo, mat);
-        // Arestas sutis
         const edges = new THREE.EdgesGeometry(geo);
         cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0xffffff, opacity:0.25, transparent:true})));
         scene.add(cube);
@@ -157,14 +153,12 @@
         applyRot();
         resize();
 
-        // Interação (Pointer Events) + bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
         canvas.addEventListener('pointercancel', onUp, {passive:false});
         canvas.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
 
-        // Loop
         requestAnimationFrame(tick);
       }
 
@@ -179,8 +173,8 @@
         if(!dragging) return;
         const dx = e.clientX - lx;
         const dy = e.clientY - ly;
-        ry += dx * 0.01;   // gira horizontal
-        rx -= dy * 0.01;   // inclina vertical
+        ry += dx * 0.01;
+        rx -= dy * 0.01;
         rx = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, rx));
         applyRot();
         lx = e.clientX; ly = e.clientY;
@@ -198,19 +192,18 @@
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
-        // Cubo sempre visível (ajuste fino: menor divisor => maior)
+
         const s = Math.min(w, h);
-        cube.scale.setScalar(s / 220);
+        cube.scale.setScalar(s / 240); // mesmo tamanho visual de antes
       }
       window.addEventListener('resize', resize);
 
       function tick(){
-        if(idle){ ry += 0.003; applyRot(); }  // giro suave quando inativo
+        if(idle){ ry += 0.003; applyRot(); }
         renderer.render(scene, camera);
         requestAnimationFrame(tick);
       }
 
-      // Inicializa quando a página terminar de carregar (tamanhos já corretos)
       if (document.readyState === 'complete') init();
       else window.addEventListener('load', init);
     })();
