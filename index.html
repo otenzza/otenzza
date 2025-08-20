@@ -1,16 +1,17 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Otenzza — your altar of presence</title>
-  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube."/>
+  <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
   <style>
     :root{ --bg:#0a0a0d; --text:#e8e8ee; --muted:#9a9ab0; --ring:rgba(255,255,255,.10); }
-    *{box-sizing:border-box} html,body{height:100%}
+    *{box-sizing:border-box}
+    html,body{height:100%}
     body{
       margin:0; color:var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
@@ -18,27 +19,24 @@
       -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
     }
 
-    /* topo */
+    /* topo / marca */
     .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
     .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
     .dot{width:12px;height:12px;border-radius:50%;background:#2a57ff; box-shadow:0 0 0 7px rgba(42,87,255,.18)}
 
-    /* bloco central */
+    /* hero */
     .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
     .stack{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%; max-width:1040px}
     .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
     .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px)}
 
-    /* ===== CUBO 3D ===== */
-    .cube-wrap{width:clamp(300px,40vw,520px); height:clamp(300px,40vw,520px); display:grid; place-items:center; margin:12px 0 18px}
-    .stage{width:100%; height:100%; display:grid; place-items:center; perspective:900px; perspective-origin:50% 50%}
+    /* ===== CUBO 3D REAL (medidas numéricas) ===== */
+    .cube-wrap{width:520px; height:520px; display:grid; place-items:center; margin:12px 0 18px}
+    .stage{width:100%; height:100%; display:grid; place-items:center; perspective:1000px; perspective-origin:50% 50%}
 
+    /* Tamanho fixo, robusto */
     .cube{
-      /* Definimos as variáveis AQUI para evitar bug de herança/calc */
-      --size: clamp(220px, 34vw, 360px);
-      --half: calc(var(--size) / 2);
-
-      position:relative; width:var(--size); height:var(--size);
+      position:relative; width:320px; height:320px;
       transform-style:preserve-3d;
       filter: drop-shadow(0 30px 60px rgba(42,87,255,.28));
       cursor:grab; will-change:transform;
@@ -46,30 +44,37 @@
     .cube:active{cursor:grabbing}
 
     .face{
-      position:absolute; inset:0; width:100%; height:100%;
-      backface-visibility:hidden; border-radius:12px;
+      position:absolute; inset:0; width:320px; height:320px; left:0; top:0;
+      backface-visibility:hidden; border-radius:14px;
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.06), inset 0 0 24px rgba(0,0,0,.25);
+      overflow:hidden;
     }
-    /* ROTATE -> TRANSLATEZ(var(--half))  (ordem importa!) */
-    .front  { background: linear-gradient(145deg,#4a6aff,#244bff); transform: translateZ(var(--half)); }
-    .back   { background: linear-gradient(145deg,#0e1cff,#0a12ff); transform: rotateY(180deg) translateZ(var(--half)); }
-    .right  { background: linear-gradient(145deg,#3656ff,#1d33ff); transform: rotateY( 90deg) translateZ(var(--half)); }
-    .left   { background: linear-gradient(145deg,#2a4dff,#162cff); transform: rotateY(-90deg) translateZ(var(--half)); }
-    .top    { background: linear-gradient(145deg,#5d76ff,#2d4fff); transform: rotateX( 90deg) translateZ(var(--half)); }
-    .bottom { background: linear-gradient(145deg,#203bff,#0f22ff); transform: rotateX(-90deg) translateZ(var(--half)); }
 
-    /* halo de profundidade */
+    /* Distância até o centro do cubo: 160px (320/2) */
+    .front  { transform: translateZ(160px);  background: linear-gradient(145deg,#4a6aff,#244bff); }
+    .back   { transform: rotateY(180deg) translateZ(160px); background: linear-gradient(145deg,#0e1cff,#0a12ff); }
+    .right  { transform: rotateY( 90deg) translateZ(160px); background: linear-gradient(145deg,#3656ff,#1d33ff); }
+    .left   { transform: rotateY(-90deg) translateZ(160px); background: linear-gradient(145deg,#2a4dff,#162cff); }
+    .top    { transform: rotateX( 90deg) translateZ(160px); background: linear-gradient(145deg,#74b8ff,#4a86ff); }
+    .bottom { transform: rotateX(-90deg) translateZ(160px); background: linear-gradient(145deg,#1a2bff,#0f22ff); }
+
+    /* brilho/translucidez estilo logo */
+    .face::before{
+      content:""; position:absolute; inset:0; pointer-events:none;
+      background:
+        radial-gradient(120% 90% at 30% 25%, rgba(255,255,255,.35) 0%, rgba(255,255,255,.08) 40%, transparent 70%),
+        linear-gradient(120deg, rgba(255,255,255,.12), rgba(255,255,255,0) 60%);
+      mix-blend-mode:screen;
+    }
+    /* contorno sutil (wireframe leve) ajuda a enxergar as arestas */
+    .face::after{content:""; position:absolute; inset:0; border-radius:14px; border:1px solid rgba(255,255,255,.12); pointer-events:none}
+
+    /* halo */
     .halo{position:absolute; inset:-20% -20% -10% -20%; border-radius:50%; pointer-events:none;
       background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 70%);
       filter: blur(46px); transform: translateZ(-120px);}
 
-    /* “wireframe” sutil para evidenciar as arestas (ajuda a ver 3 faces) */
-    .face::after{
-      content:""; position:absolute; inset:0; border-radius:12px;
-      border:1px solid rgba(255,255,255,.10); pointer-events:none;
-    }
-
-    /* formulário */
+    /* form */
     .form{display:flex; gap:12px; align-items:center; justify-content:center; margin-top:6px; flex-wrap:wrap}
     .input{width:min(520px,78vw); height:46px; border-radius:999px; border:1px solid var(--ring); background:rgba(255,255,255,.04); color:var(--text); padding:0 18px; outline:none; font-size:15px; backdrop-filter:blur(4px)}
     .input::placeholder{color:#8a8aa2}
@@ -79,12 +84,13 @@
 
     footer{padding:52px 20px; text-align:center; color:#7b7b8a; font-size:12px}
 
-    @media (max-width:640px){
-      .topbar{height:78px}
+    /* responsivo: reduz ligeiro o cubo e o wrapper */
+    @media (max-width: 640px){
+      .cube-wrap{width:420px; height:420px}
+      .stage{transform: scale(.85)}
       .brand{font-size:clamp(26px,8vw,38px)}
       .title{font-size:clamp(16px,5vw,24px)}
       .subtitle{font-size:clamp(11px,3.2vw,13px)}
-      .cube-wrap{width:clamp(260px,70vw,420px); height:clamp(260px,70vw,420px)}
     }
   </style>
 </head>
@@ -131,8 +137,8 @@
       const cube  = document.getElementById('cube');
       const stage = document.getElementById('stage');
 
-      // Ângulo inicial pensado para ver 3 faces
-      let rx = -26, ry = 42;
+      // Ângulo inicial para ver 3 faces (frente + lado + topo)
+      let rx = -26, ry = 36;
 
       let dragging = false, lastX = 0, lastY = 0;
       let auto = true, rafId;
@@ -143,8 +149,8 @@
       const move =(x,y)=>{
         if(!dragging) return;
         const dx=x-lastX, dy=y-lastY;
-        ry += dx*0.45;
-        rx -= dy*0.45;
+        ry += dx*0.45;    // gira horizontalmente
+        rx -= dy*0.45;    // inclina verticalmente
         rx = clamp(rx,-88,88);
         setRot(); lastX=x; lastY=y;
       };
