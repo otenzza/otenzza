@@ -38,8 +38,8 @@
   .cube-wrap::before{
     content:""; position:absolute; inset:-12% -12% -6% -12%;
     border-radius:50%;
-    background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.40), transparent 72%);
-    filter: blur(44px); z-index:0;
+    background: radial-gradient(50% 50% at 50% 60%, rgba(42,87,255,.35), transparent 72%);
+    filter: blur(40px); z-index:0;
   }
   #three-canvas{
     width:100%; height:100%; display:block;
@@ -106,63 +106,103 @@
       const container = document.getElementById('cube-wrap');
       const canvas    = document.getElementById('three-canvas');
 
-      let renderer, scene, camera, outerCube, rimA, rimB, volumeCube;
-      let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8;
+      let renderer, scene, camera, cubeMesh, rimA, rimB;
+      let dragging=false, lx=0, ly=0, rx=-0.55, ry=0.9;
       let idle = true;
 
       function init(){
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.12;                 // um pouco mais de presença
-        renderer.physicallyCorrectLights = true;
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.toneMappingExposure = 1.05;
+        renderer.physicallyCorrectLights = false; // (shader próprio)
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // ⚡ leve
 
         scene  = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-        camera.position.set(0, 0, 3.8);
+        camera.position.set(0, 0, 3.6);
         camera.lookAt(0,0,0);
 
-        /* Luz */
-        scene.add(new THREE.AmbientLight(0xbfd9ff, 0.55));
-        const key = new THREE.DirectionalLight(0xffffff, 1.25); key.position.set(3.5,4.2,5.2); scene.add(key);
-        const fill = new THREE.DirectionalLight(0x8bbcff, 0.7); fill.position.set(-4,-2.2,-3.2); scene.add(fill);
-        const bounce = new THREE.PointLight(0x2b5dff, 0.9, 8); bounce.position.set(0,-2,0); scene.add(bounce);
+        // Geometria (subdividida só um pouco para specular mais bonito)
+        const geo = new THREE.BoxGeometry(1,1,1, 2,2,2);
 
-        const geo = new THREE.BoxGeometry(1,1,1);
+        // --- Shader leve (Lambert + Specular + Fresnel + “edge glow” + grão) ---
+        const mat = new THREE.ShaderMaterial({
+          uniforms:{
+            uColorDark: {value: new THREE.Color(0x1f4fbf)},
+            uColorLite: {value: new THREE.Color(0x67b2ff)},
+            uSpecColor: {value: new THREE.Color(0xbfdfff)},
+            uLightDir:  {value: new THREE.Vector3(0.6,0.8,0.7).normalize()},
+            uAmbient:   {value: 0.28},
+            uShininess: {value: 38.0},
+            uRimGain:   {value: 0.60},
+            uRimPower:  {value: 2.1},
+            uTime:      {value: 0.0},
+          },
+          vertexShader: `
+            varying vec3 vN, vW, vPos; // normal, worldPos, objPos
+            void main(){
+              vN = normalize(normalMatrix * normal);
+              vec4 wp = modelMatrix * vec4(position,1.0);
+              vW = wp.xyz;
+              vPos = position;
+              gl_Position = projectionMatrix * viewMatrix * wp;
+            }
+          `,
+          fragmentShader: `
+            precision highp float;
+            varying vec3 vN, vW, vPos;
+            uniform vec3 uColorDark, uColorLite, uSpecColor, uLightDir;
+            uniform float uAmbient, uShininess, uRimGain, uRimPower;
+            uniform float uTime;
 
-        /* Vidro “grosso”/azulado: transmission + tint + sem depthWrite */
-        const outerMat = new THREE.MeshPhysicalMaterial({
-          color: 0x5aa0ff,            // base mais azul
-          metalness: 0.0,
-          roughness: 0.07,
-          clearcoat: 0.95,
-          clearcoatRoughness: 0.05,
-          transparent: true,
-          opacity: 0.52,              // um pouco mais opaco -> aspecto de vidro espesso
-          transmission: 1.0,
-          ior: 1.33,                  // vidro/água
-          thickness: 2.6,             // “paredes” mais grossas = bordas com cor
-          attenuationColor: new THREE.Color(0x62b7ff),
-          attenuationDistance: 1.55,  // mais curto => mais cor azul
-          depthWrite: false           // não mata o volume
+            // ruído barato p/ grão/dither
+            float rnd(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+
+            void main(){
+              vec3 N = normalize(vN);
+              vec3 L = normalize(uLightDir);
+              vec3 V = normalize(cameraPosition - vW);
+              vec3 H = normalize(L + V);
+
+              float ndl = max(dot(N,L), 0.0);         // difusa
+              float ndh = max(dot(N,H), 0.0);
+              float spec = pow(ndh, uShininess) * 0.9; // especular
+
+              // gradiente azul sutil (não “chapado”)
+              float g = 0.5 + 0.5*N.y;
+              vec3 base = mix(uColorDark, uColorLite, g);
+
+              // realce de bordas (simula espessura)
+              vec3 d = smoothstep(0.44, 0.495, abs(vPos));
+              float edge = max(max(min(d.x,d.y), min(d.y,d.z)), min(d.x,d.z));
+              edge = pow(edge, 1.4);
+
+              // Fresnel (rim)
+              float rim = pow(1.0 - max(dot(N,V), 0.0), uRimPower) * uRimGain;
+
+              // grão/dither sutil
+              float grain = (rnd(gl_FragCoord.xy + vec2(uTime*60.0, 0.0)) - 0.5) * 0.02;
+
+              vec3 color = base * (uAmbient + ndl*0.9) + uSpecColor * spec + (uColorLite*0.6)*edge + (uColorLite*0.5)*rim;
+              color += grain;
+
+              gl_FragColor = vec4(color, 1.0);
+            }
+          `,
+          transparent:false
         });
-        outerCube = new THREE.Mesh(geo, outerMat);
-        outerCube.renderOrder = 2;
-        scene.add(outerCube);
 
-        /* Dois rims (Fresnel) para borda com camada de luz */
-        function makeRim(colorHex, power, gain){
+        cubeMesh = new THREE.Mesh(geo, mat);
+        scene.add(cubeMesh);
+
+        // Dois rims extras bem baratinhos (additive) para aresta “de vidro”
+        function rimMaterial(colorHex, power, gain){
           return new THREE.ShaderMaterial({
-            transparent:true, depthWrite:false,
-            blending: THREE.AdditiveBlending,
-            uniforms:{
-              uColor: {value: new THREE.Color(colorHex)},
-              uPower: {value: power},
-              uGain:  {value: gain}
-            },
+            transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+            uniforms:{ uColor:{value:new THREE.Color(colorHex)}, uPower:{value:power}, uGain:{value:gain} },
             vertexShader: `
-              varying vec3 vN; varying vec3 vW;
+              varying vec3 vN, vW;
               void main(){
                 vN = normalize(normalMatrix * normal);
                 vec4 wp = modelMatrix * vec4(position,1.0);
@@ -171,8 +211,9 @@
               }
             `,
             fragmentShader: `
-              uniform vec3 uColor; uniform float uPower; uniform float uGain;
-              varying vec3 vN; varying vec3 vW;
+              precision highp float;
+              uniform vec3 uColor; uniform float uPower, uGain;
+              varying vec3 vN, vW;
               void main(){
                 vec3 V = normalize(cameraPosition - vW);
                 float f = pow(1.0 - max(dot(normalize(vN), V), 0.0), uPower);
@@ -181,159 +222,13 @@
             `
           });
         }
-        rimA = new THREE.Mesh(geo, makeRim(0xbfe6ff, 2.2, 0.85));  // claro
-        rimA.scale.setScalar(1.003);
-        rimA.renderOrder = 3;
-        outerCube.add(rimA);
-
-        rimB = new THREE.Mesh(geo, makeRim(0x3f7cff, 2.8, 0.65));  // azul profundo por baixo
-        rimB.scale.setScalar(1.001);
-        rimB.renderOrder = 2.9;
-        outerCube.add(rimB);
-
-        /* Volume interno — fluido HD com jitter + domain-warp + curl */
-        const volumeUniforms = {
-          uTime:      { value: 0 },
-          uModelInv:  { value: new THREE.Matrix4() },
-          uColorA:    { value: new THREE.Color(0x6fc3ff) }, // base
-          uColorB:    { value: new THREE.Color(0xc4e7ff) }, // highlights
-          uIntensity: { value: 2.15 },                      // força do brilho interno
-          uSteps:     { value: 84 },                        // + passos = + qualidade
-          uSeed:      { value: Math.random()*1000.0 }       // jitter
-        };
-
-        const volumeMat = new THREE.ShaderMaterial({
-          uniforms: volumeUniforms,
-          transparent: true,
-          depthWrite: false,
-          blending: THREE.AdditiveBlending,
-          side: THREE.DoubleSide,
-          vertexShader: `
-            varying vec3 vWorldPos;
-            void main(){
-              vec4 wp = modelMatrix * vec4(position,1.0);
-              vWorldPos = wp.xyz;
-              gl_Position = projectionMatrix * viewMatrix * wp;
-            }
-          `,
-          fragmentShader: `
-            precision highp float;
-            varying vec3 vWorldPos;
-            uniform mat4  uModelInv;
-            uniform float uTime;
-            uniform float uIntensity;
-            uniform int   uSteps;
-            uniform float uSeed;
-            uniform vec3  uColorA, uColorB;
-
-            /* rand / noise ------------------------------------------------- */
-            float hash1(float n){ return fract(sin(n)*43758.5453); }
-            float hash3(vec3 p){ return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453); }
-
-            float noise(vec3 x){
-              vec3 i=floor(x), f=fract(x), u=f*f*(3.0-2.0*f);
-              float n000=hash3(i+vec3(0,0,0)), n100=hash3(i+vec3(1,0,0));
-              float n010=hash3(i+vec3(0,1,0)), n110=hash3(i+vec3(1,1,0));
-              float n001=hash3(i+vec3(0,0,1)), n101=hash3(i+vec3(1,0,1));
-              float n011=hash3(i+vec3(0,1,1)), n111=hash3(i+vec3(1,1,1));
-              float n00=mix(n000,n100,u.x), n01=mix(n001,n101,u.x);
-              float n10=mix(n010,n110,u.x), n11=mix(n011,n111,u.x);
-              float n0=mix(n00,n10,u.y), n1=mix(n01,n11,u.y);
-              return mix(n0,n1,u.z);
-            }
-
-            /* FBM com domain-warp ------------------------------------------ */
-            float fbm(vec3 p){
-              float v=0.0; float a=0.55; vec3 shift=vec3(10.3,19.7,7.1);
-              for(int i=0;i<6;i++){ v+=a*noise(p); p=p*2.02+shift; a*=0.5; }
-              return v;
-            }
-
-            /* Curl-noise simples (aprox) para fluxo suave ------------------ */
-            vec3 curl(vec3 p){
-              float e=0.2;
-              vec3 dx=vec3(e,0,0), dy=vec3(0,e,0), dz=vec3(0,0,e);
-              float x = fbm(p+dy)-fbm(p-dy) - (fbm(p+dz)-fbm(p-dz));
-              float y = fbm(p+dz)-fbm(p-dz) - (fbm(p+dx)-fbm(p-dx));
-              float z = fbm(p+dx)-fbm(p-dx) - (fbm(p+dy)-fbm(p-dy));
-              return normalize(vec3(x,y,z));
-            }
-
-            /* Ray/AABB [-0.49,0.49] evita z-fight com o vidro -------------- */
-            vec2 boxIntersect(vec3 ro, vec3 rd){
-              vec3 mn=vec3(-0.49), mx=vec3(0.49);
-              vec3 t0=(mn-ro)/rd, t1=(mx-ro)/rd;
-              vec3 tmin=min(t0,t1), tmax=max(t0,t1);
-              float tE=max(max(tmin.x,tmin.y),tmin.z);
-              float tX=min(min(tmax.x,tmax.y),tmax.z);
-              return vec2(tE,tX);
-            }
-
-            void main(){
-              vec3 roW = cameraPosition;
-              vec3 rdW = normalize(vWorldPos - cameraPosition);
-              vec3 ro  = (uModelInv * vec4(roW,1.0)).xyz;
-              vec3 rd  = normalize((uModelInv * vec4(rdW,0.0)).xyz);
-
-              vec2 tb = boxIntersect(ro, rd);
-              if(tb.x>tb.y) discard;
-
-              float t0 = max(tb.x,0.0), t1=tb.y;
-              float steps = float(uSteps);
-              float dt = (t1 - t0) / steps;
-
-              /* Jitter do primeiro sample para desfocar “steps” (anti-banding) */
-              float rnd = hash1(dot(rd, vec3(12.9898,78.233,37.719)) + uSeed);
-              float t = t0 + (rnd)*dt;
-
-              vec3  col = vec3(0.0);
-              float acc = 0.0;
-
-              /* parâmetros do fluido */
-              float speed = 0.42;        // velocidade geral
-              float densK = 0.08;        // densidade por passo
-              float warp  = 0.65;        // força do domain-warp
-
-              for(int i=0;i<120;i++){
-                if(float(i)>=steps) break;
-
-                vec3 p = ro + rd*t;
-
-                /* campo animado: mistura fbm + curl para “água corrente” */
-                vec3 q = p*4.0;
-                q += speed*uTime*vec3(0.24, 0.17, -0.21);
-                vec3 w = curl(q*0.9 + vec3(0.0, 0.7*uTime, 0.3*uTime));
-                q += warp * w;
-
-                float d = fbm(q);
-                d = smoothstep(0.40, 0.98, d);  // contraste do fluido
-                d *= densK;
-
-                /* coloração bicolor (profundo + highlights) */
-                vec3 c = mix(uColorA, uColorB, clamp(d*3.0, 0.0, 1.0));
-                col += c * d * uIntensity;
-                acc += d;
-
-                if(acc>1.35) break;      // saturou a luz interna
-
-                t += dt;
-              }
-
-              col = clamp(col, 0.0, 1.0);
-              float alpha = clamp(acc, 0.0, 1.0);
-              gl_FragColor = vec4(col, alpha);
-            }
-          `
-        });
-
-        volumeCube = new THREE.Mesh(geo, volumeMat);
-        volumeCube.scale.setScalar(0.985);      // levemente menor, “imerso” no vidro
-        volumeCube.renderOrder = 1;
-        outerCube.add(volumeCube);
+        rimA = new THREE.Mesh(geo, rimMaterial(0xcfe8ff, 2.0, 0.70)); rimA.scale.setScalar(1.002); rimA.renderOrder=2; cubeMesh.add(rimA);
+        rimB = new THREE.Mesh(geo, rimMaterial(0x3f7cff, 2.6, 0.55)); rimB.scale.setScalar(1.001); rimB.renderOrder=1.9; cubeMesh.add(rimB);
 
         applyRot();
         resize();
 
+        // interação + bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
@@ -343,18 +238,15 @@
         let last = performance.now();
         function tick(now){
           const dt = Math.min(0.05, (now - last)/1000); last = now;
-
-          if(idle){ ry += 0.0010; applyRot(); }         // giro muito suave
-          volumeMat.uniforms.uTime.value += dt;         // animação fluida
-          volumeMat.uniforms.uModelInv.value.copy(volumeCube.matrixWorld).invert();
-
+          if(idle){ ry += 0.0011; applyRot(); }
+          mat.uniforms.uTime.value += dt;
           renderer.render(scene, camera);
           requestAnimationFrame(tick);
         }
         requestAnimationFrame(tick);
       }
 
-      function applyRot(){ outerCube.rotation.x = rx; outerCube.rotation.y = ry; }
+      function applyRot(){ cubeMesh.rotation.x = rx; cubeMesh.rotation.y = ry; }
       function onDown(e){ dragging=true; idle=false; lx=e.clientX; ly=e.clientY; canvas.setPointerCapture(e.pointerId); e.preventDefault(); }
       function onMove(e){ if(!dragging)return; const dx=e.clientX-lx, dy=e.clientY-ly; ry+=dx*0.01; rx-=dy*0.01; rx=Math.max(-Math.PI/2+0.05, Math.min(Math.PI/2-0.05, rx)); applyRot(); lx=e.clientX; ly=e.clientY; e.preventDefault(); }
       function onUp(e){ dragging=false; idle=true; try{canvas.releasePointerCapture(e.pointerId);}catch(_){} e.preventDefault(); }
@@ -364,7 +256,7 @@
         renderer.setSize(w, h, false);
         camera.aspect = w/h; camera.updateProjectionMatrix();
         const s = Math.min(w, h);
-        outerCube.scale.setScalar(s / 600);  // ~60% do “cheio”
+        cubeMesh.scale.setScalar(s / 600); // ~60% do “cheio”
       }
       window.addEventListener('resize', resize);
 
