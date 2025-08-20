@@ -22,7 +22,7 @@
   /* topo / marca */
   .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
   .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
-  .brand-cube{width:28px; height:auto; display:block} /* AUMENTADO */
+  .brand-cube{width:28px; height:auto; display:block} /* cubinho maior */
 
   /* hero */
   .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
@@ -69,7 +69,7 @@
 <body>
   <header class="topbar">
     <div class="brand" aria-label="Otenzza">
-      <!-- Cubinho do logo (substitui a bolinha) -->
+      <!-- cubinho do logo ao lado do nome -->
       <svg class="brand-cube" viewBox="0 0 48 48" aria-hidden="true">
         <defs>
           <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
@@ -123,65 +123,64 @@
       let renderer, scene, camera, cube;
       let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8; // ângulos iniciais (rad)
       let idle = true;
-// === textura marmorizada procedural (canvas) ===
-function makeMarbleTexture(size=512, veinScale=5.0, veinStrength=4.0, seed=1337){
-  const c = document.createElement('canvas'); c.width = c.height = size;
-  const ctx = c.getContext('2d');
-  const img = ctx.createImageData(size,size); const data = img.data;
 
-  const lerp=(a,b,t)=>a+(b-a)*t;
-  const smooth=t=>t*t*(3-2*t);
-  const hash=(x,y)=>{
-    const s = Math.sin(x*127.1 + y*311.7 + seed) * 43758.5453123;
-    return s - Math.floor(s);
-  };
-  const noise=(x,y)=>{
-    const xi=Math.floor(x), yi=Math.floor(y);
-    const xf=x-xi, yf=y-yi;
-    const v00=hash(xi,yi), v10=hash(xi+1,yi), v01=hash(xi,yi+1), v11=hash(xi+1,yi+1);
-    const u=smooth(xf), v=smooth(yf);
-    return lerp(lerp(v00,v10,u), lerp(v01,v11,u), v);
-  };
-  const fbm=(x,y,oct=5)=>{
-    let val=0, amp=0.5, freq=1.0;
-    for(let i=0;i<oct;i++){ val += amp*noise(x*freq, y*freq); freq*=2.02; amp*=0.5; }
-    return val;
-  };
+      // === textura marmorizada procedural (canvas) ===
+      function makeMarbleTexture(size=512, veinScale=5.0, veinStrength=4.0, seed=1337){
+        const c = document.createElement('canvas'); c.width = c.height = size;
+        const ctx = c.getContext('2d');
+        const img = ctx.createImageData(size,size); const data = img.data;
 
-  const angle = 0.6; // rotação das veias (rad)
-  const ca=Math.cos(angle), sa=Math.sin(angle);
+        const lerp=(a,b,t)=>a+(b-a)*t;
+        const smooth=t=>t*t*(3-2*t);
+        const hash=(x,y)=>{
+          const s = Math.sin(x*127.1 + y*311.7 + seed) * 43758.5453123;
+          return s - Math.floor(s);
+        };
+        const noise=(x,y)=>{
+          const xi=Math.floor(x), yi=Math.floor(y);
+          const xf=x-xi, yf=y-yi;
+          const v00=hash(xi,yi), v10=hash(xi+1,yi), v01=hash(xi,yi+1), v11=hash(xi+1,yi+1);
+          const u=smooth(xf), v=smooth(yf);
+          return lerp(lerp(v00,v10,u), lerp(v01,v11,u), v);
+        };
+        const fbm=(x,y,oct=5)=>{
+          let val=0, amp=0.5, freq=1.0;
+          for(let i=0;i<oct;i++){ val += amp*noise(x*freq, y*freq); freq*=2.02; amp*=0.5; }
+          return val;
+        };
 
-  for(let y=0;y<size;y++){
-    for(let x=0;x<size;x++){
-      const nx=x/size, ny=y/size;
+        const angle = 0.6; // rotação das veias (rad)
+        const ca=Math.cos(angle), sa=Math.sin(angle);
 
-      // coordenadas “ao longo da veia”
-      const sx = (nx*ca - ny*sa) * veinScale;
-      const sy = (nx*sa + ny*ca) * veinScale;
+        for(let y=0;y<size;y++){
+          for(let x=0;x<size;x++){
+            const nx=x/size, ny=y/size;
+            const sx = (nx*ca - ny*sa) * veinScale;
+            const sy = (nx*sa + ny*ca) * veinScale;
 
-      // turbolência e padrão de mármore
-      const t = fbm(sx, sy, 5);
-      let m = Math.sin(sx + t*veinStrength); // -1..1
-      m = (m+1)/2;                           // 0..1
-      m = Math.pow(m, 1.6);                  // contraste suave
-      const speck = fbm(sx*3.0, sy*3.0, 2) * 0.08; // pontilhado leve
-      let v = Math.min(1, Math.max(0, m + speck));
+            const t = fbm(sx, sy, 5);
+            let m = Math.sin(sx + t*veinStrength); // -1..1
+            m = (m+1)/2;                            // 0..1
+            m = Math.pow(m, 1.6);                   // contraste suave
+            const speck = fbm(sx*3.0, sy*3.0, 2) * 0.08; // pontinhos leves
+            let v = Math.min(1, Math.max(0, m + speck));
 
-      // leve “tint” para azul
-      const i=(y*size + x)*4;
-      data[i  ] = Math.round((0.75*v + 0.25) * 255); // R
-      data[i+1] = Math.round((0.82*v + 0.18) * 255); // G
-      data[i+2] = Math.round((1.00*v + 0.20) * 255); // B
-      data[i+3] = 255;
-    }
-  }
-  ctx.putImageData(img,0,0);
+            const i=(y*size + x)*4;
+            data[i  ] = Math.round((0.75*v + 0.25) * 255); // R
+            data[i+1] = Math.round((0.82*v + 0.18) * 255); // G
+            data[i+2] = Math.round((1.00*v + 0.20) * 255); // B
+            data[i+3] = 255;
+          }
+        }
+        ctx.putImageData(img,0,0);
 
-  const tex = new THREE.CanvasTexture(c);
-  tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping; // evita emendas
-  tex.anisotropy = 8;
-  return tex;
-}
+        const tex = new THREE.CanvasTexture(c);
+        tex.wrapS = tex.wrapT = THREE.MirroredRepeatWrapping;
+        tex.anisotropy = 8;
+        if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+        tex.needsUpdate = true;
+        return tex;
+      }
 
       function init(){
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
@@ -190,7 +189,7 @@ function makeMarbleTexture(size=512, veinScale=5.0, veinStrength=4.0, seed=1337)
         scene  = new THREE.Scene();
         camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
 
-        /* >>> ALTERAÇÃO: câmera centralizada e um pouco mais distante <<< */
+        /* câmera centralizada e um pouco mais distante */
         camera.position.set(0, 0, 3.8);
         camera.lookAt(0,0,0);
 
@@ -198,34 +197,37 @@ function makeMarbleTexture(size=512, veinScale=5.0, veinStrength=4.0, seed=1337)
         const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(3,4,5); scene.add(dir);
         const rim = new THREE.PointLight(0x6d8bff, 0.7); rim.position.set(-4,-2,-3); scene.add(rim);
 
+        // Cubo (6 faces reais) + textura mármore
         const geo = new THREE.BoxGeometry(1,1,1);
-// Cubo (6 faces reais)
-const geo = new THREE.BoxGeometry(1,1,1);
 
-// textura marmorizada azul (padrão suave)
-const marbleTex = makeMarbleTexture(512, /*veinScale*/ 5.0, /*veinStrength*/ 4.0);
-marbleTex.repeat.set(1.5, 1.5); // deixa as veias mais frequentes
+        const marbleTex = makeMarbleTexture(512, 5.0, 4.0);
+        marbleTex.repeat.set(1.5, 1.5);
 
-const mat = new THREE.MeshPhysicalMaterial({
-  color: 0x2f5aff,          // azul base (tinta sobre o marble)
-  map: marbleTex,           // aplica o mármore
-  metalness: 0.08,
-  roughness: 0.32,          // um pouco mais “mineral”
-  clearcoat: 0.45,
-  clearcoatRoughness: 0.08,
-  transparent: true,
-  opacity: 0.95
-});
+        const mat = new THREE.MeshPhysicalMaterial({
+          color: 0x2f5aff,     // tinta azul sobre o mármore
+          map: marbleTex,
+          metalness: 0.08,
+          roughness: 0.32,
+          clearcoat: 0.45,
+          clearcoatRoughness: 0.08,
+          transparent: true,
+          opacity: 0.95
+        });
 
-const cube = new THREE.Mesh(geo, mat);
+        cube = new THREE.Mesh(geo, mat);
 
+        // Arestas sutis
         const edges = new THREE.EdgesGeometry(geo);
-        cube.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({color:0xffffff, opacity:0.25, transparent:true})));
+        cube.add(new THREE.LineSegments(
+          edges,
+          new THREE.LineBasicMaterial({color:0xffffff, opacity:0.25, transparent:true})
+        ));
         scene.add(cube);
 
         applyRot();
         resize();
 
+        // Interação (Pointer Events) + bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
@@ -266,8 +268,9 @@ const cube = new THREE.Mesh(geo, mat);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
 
+        // *** 60% MENOR (mantido) ***
         const s = Math.min(w, h);
-        cube.scale.setScalar(s / 600); // mesmo tamanho visual de antes
+        cube.scale.setScalar(s / 600); // <= antes era /240; /600 deixa ~60% menor
       }
       window.addEventListener('resize', resize);
 
