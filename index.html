@@ -30,7 +30,7 @@
   .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
   .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px)}
 
-  /* Área do cubo – quadrada e canvas acima do halo */
+  /* Área do cubo – sempre quadrada */
   .cube-wrap{
     width:min(540px,85vw);
     aspect-ratio: 1 / 1;
@@ -120,13 +120,13 @@
       const container = document.getElementById('cube-wrap');
       const canvas    = document.getElementById('three-canvas');
 
-      let renderer, scene, camera, outerCube, rimMesh, innerLights=[];
+      let renderer, scene, camera, outerCube, rimMesh, volumeCube;
       let dragging=false, lx=0, ly=0, rx=-0.6, ry=0.8;
       let idle = true;
 
       function init(){
         renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
-        if (renderer.outputColorSpace !== undefined) renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.toneMappingExposure = 1.05;
         renderer.physicallyCorrectLights = true;
@@ -137,40 +137,40 @@
         camera.position.set(0, 0, 3.8);
         camera.lookAt(0,0,0);
 
-        /* luzes do ambiente */
+        /* Luzes */
         scene.add(new THREE.AmbientLight(0xffffff, 0.55));
-        const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3.5, 4, 5); scene.add(key);
-        const fill = new THREE.DirectionalLight(0x8bbcff, 0.6); fill.position.set(-4, -2, -3); scene.add(fill);
-        const bounce = new THREE.PointLight(0x3a66ff, 0.6, 8); bounce.position.set(0,-2,0); scene.add(bounce);
+        const key = new THREE.DirectionalLight(0xffffff, 1.1); key.position.set(3.5,4,5); scene.add(key);
+        const fill = new THREE.DirectionalLight(0x8bbcff, 0.6); fill.position.set(-4,-2,-3); scene.add(fill);
+        const bounce = new THREE.PointLight(0x3a66ff, 0.7, 8); bounce.position.set(0,-2,0); scene.add(bounce);
 
         const geo = new THREE.BoxGeometry(1,1,1);
 
-        /* ——— CUBO EXTERNO (gelo/vidro claro) ——— */
+        /* ——— CUBO EXTERNO (vidro/“gelo” translúcido) ——— */
         const outerMat = new THREE.MeshPhysicalMaterial({
           color: 0x7bb6ff,
           metalness: 0.0,
-          roughness: 0.12,          // menos fosco
+          roughness: 0.10,          // menos fosco, mais vítreo
           clearcoat: 0.9,
-          clearcoatRoughness: 0.08,
+          clearcoatRoughness: 0.06,
           transparent: true,
-          opacity: 0.5,             // vidro leve
-          transmission: 0.9,        // mais translúcido
+          opacity: 0.42,            // vidro leve
+          transmission: 1.0,        // máxima translucidez
           ior: 1.31,                // gelo
-          thickness: 1.2,
-          attenuationColor: new THREE.Color(0x98d6ff),
-          attenuationDistance: 2.2
+          thickness: 1.8,
+          attenuationColor: new THREE.Color(0x9ed9ff),
+          attenuationDistance: 3.0
         });
         outerCube = new THREE.Mesh(geo, outerMat);
         scene.add(outerCube);
 
-        /* ——— Arestas com Fresnel (glow sutil) ——— */
+        /* ——— BRILHO DE ARESTA (Fresnel) ——— */
         const rimShader = new THREE.ShaderMaterial({
           transparent:true, depthWrite:false,
           blending: THREE.AdditiveBlending,
           uniforms:{
-            uColor: {value: new THREE.Color(0x9bd5ff)},
-            uPower: {value: 2.2},
-            uGain:  {value: 0.55}
+            uColor: {value: new THREE.Color(0xbfe6ff)},
+            uPower: {value: 2.0},
+            uGain:  {value: 0.6}
           },
           vertexShader: `
             varying vec3 vN;
@@ -196,62 +196,155 @@
           `
         });
         rimMesh = new THREE.Mesh(geo, rimShader);
-        rimMesh.scale.setScalar(1.002); // um “casco” mínimo por cima
+        rimMesh.scale.setScalar(1.002);
         outerCube.add(rimMesh);
 
-        /* ——— LUZES INTERNAS (três esferas aditivas, lentas) ——— */
-        const bulbGeo = new THREE.SphereGeometry(0.16, 32, 32);
-        const mkBulb = (hex, op)=> new THREE.MeshBasicMaterial({
-          color: hex, transparent:true, opacity: op,
-          blending: THREE.AdditiveBlending, depthWrite:false
+        /* ——— VOLUME INTERNO (fluido real com raymarching) ——— */
+        const volumeUniforms = {
+          uTime:      { value: 0 },
+          uModelInv:  { value: new THREE.Matrix4() },
+          uColor:     { value: new THREE.Color(0x79c6ff) }, // azul vivo
+          uIntensity: { value: 1.2 },                       // brilho do fluido
+          uSteps:     { value: 48 }                         // passos do raymarch (48 é leve/bonito)
+        };
+
+        const volumeMat = new THREE.ShaderMaterial({
+          uniforms: volumeUniforms,
+          transparent: true,
+          depthWrite: false,
+          blending: THREE.AdditiveBlending,
+          side: THREE.DoubleSide,
+          vertexShader: `
+            varying vec3 vWorldPos;
+            void main(){
+              vec4 wp = modelMatrix * vec4(position,1.0);
+              vWorldPos = wp.xyz;
+              gl_Position = projectionMatrix * viewMatrix * wp;
+            }
+          `,
+          fragmentShader: `
+            precision highp float;
+            varying vec3 vWorldPos;
+
+            uniform mat4 uModelInv;
+            uniform float uTime;
+            uniform vec3  uColor;
+            uniform float uIntensity;
+            uniform int   uSteps;
+
+            /* ---- helpers ---- */
+            float hash(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7, 74.7))) * 43758.5453); }
+
+            float noise(vec3 x){
+              vec3 i = floor(x);
+              vec3 f = fract(x);
+              vec3 u = f*f*(3.0-2.0*f);
+              float n000 = hash(i+vec3(0,0,0));
+              float n100 = hash(i+vec3(1,0,0));
+              float n010 = hash(i+vec3(0,1,0));
+              float n110 = hash(i+vec3(1,1,0));
+              float n001 = hash(i+vec3(0,0,1));
+              float n101 = hash(i+vec3(1,0,1));
+              float n011 = hash(i+vec3(0,1,1));
+              float n111 = hash(i+vec3(1,1,1));
+              float n00 = mix(n000,n100,u.x);
+              float n01 = mix(n001,n101,u.x);
+              float n10 = mix(n010,n110,u.x);
+              float n11 = mix(n011,n111,u.x);
+              float n0 = mix(n00,n10,u.y);
+              float n1 = mix(n01,n11,u.y);
+              return mix(n0,n1,u.z);
+            }
+
+            float fbm(vec3 p){
+              float v=0.0; float a=0.55; vec3 shift = vec3(10.3,19.7,7.1);
+              for(int i=0;i<5;i++){
+                v += a*noise(p); p = p*2.02 + shift; a *= 0.5;
+              }
+              return v;
+            }
+
+            /* ray-box: retorna (tEnter, tExit) na AABB [-0.5,0.5] */
+            vec2 boxIntersect(vec3 ro, vec3 rd){
+              vec3 mn = vec3(-0.5), mx = vec3(0.5);
+              vec3 t0 = (mn - ro)/rd;
+              vec3 t1 = (mx - ro)/rd;
+              vec3 tmin = min(t0,t1);
+              vec3 tmax = max(t0,t1);
+              float tE = max(max(tmin.x,tmin.y),tmin.z);
+              float tX = min(min(tmax.x,tmax.y),tmax.z);
+              return vec2(tE, tX);
+            }
+
+            void main(){
+              /* ray em espaço do objeto */
+              vec3 roW = cameraPosition;
+              vec3 rdW = normalize(vWorldPos - cameraPosition);
+              vec3 ro  = (uModelInv * vec4(roW,1.0)).xyz;
+              vec3 rd  = normalize((uModelInv * vec4(rdW,0.0)).xyz);
+
+              vec2 tb = boxIntersect(ro, rd);
+              if(tb.x>tb.y) discard;              // sem interseção
+
+              float t0 = max(tb.x, 0.0);
+              float t1 = tb.y;
+
+              /* passos do raymarch */
+              float steps = float(uSteps);
+              float dt = (t1 - t0) / steps;
+              vec3  col = vec3(0.0);
+              float acc = 0.0;
+
+              for(int i=0;i<96;i++){              // limite máximo
+                if(float(i)>=steps) break;
+                float t = t0 + (float(i)+0.5)*dt;
+                vec3 p = ro + rd*t;               // ponto em obj space (-.5..+.5)
+                vec3 q = p*4.0;                   // escala do ruído (veias finas)
+                /* animação suave e lenta do "líquido" */
+                q += vec3(0.0, 0.0, 0.0) + vec3(0.25*uTime, 0.18*uTime, -0.22*uTime);
+
+                float d = fbm(q);                 // densidade
+                d = smoothstep(0.45, 0.95, d);    // contraste do fluido
+                d *= 0.06;                        // densidade por passo
+
+                col += d * uColor * uIntensity;
+                acc += d;
+
+                if(acc>1.2) break;                // corta quando já está brilhante
+              }
+
+              col = clamp(col, 0.0, 1.0);
+              float alpha = clamp(acc, 0.0, 1.0);
+
+              gl_FragColor = vec4(col, alpha);
+            }
+          `
         });
-        const bulbs = [
-          new THREE.Mesh(bulbGeo, mkBulb(0x8fd1ff, 0.70)),
-          new THREE.Mesh(bulbGeo, mkBulb(0x6fbfff, 0.60)),
-          new THREE.Mesh(bulbGeo, mkBulb(0xc6e9ff, 0.55))
-        ];
-        bulbs.forEach(b=>{
-          b.position.set(0,0,0);
-          outerCube.add(b);
-          innerLights.push(b);
-        });
+
+        volumeCube = new THREE.Mesh(geo, volumeMat);
+        volumeCube.scale.setScalar(0.98);              // ligeiramente menor, fica “dentro”
+        outerCube.add(volumeCube);
 
         applyRot();
         resize();
 
-        // interação
+        // Interação + bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
         canvas.addEventListener('pointercancel', onUp, {passive:false});
         canvas.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
 
-        // animação lenta
-        let t = 0;
+        // Loop
+        let last = performance.now();
         function tick(now){
-          const dt = Math.min(0.05, (now??performance.now())/1000 - t);
-          t += dt;
+          const dt = Math.min(0.05, (now - last)/1000); last = now;
 
-          // giro automático mais devagar
-          if(idle){ ry += 0.0012; applyRot(); }
+          if(idle){ ry += 0.0011; applyRot(); }  // giro automático BEM lento
 
-          // trajetórias suaves (lissajous) bem lentas
-          const s = 0.32;
-          innerLights[0].position.set(
-            Math.sin(t*0.35)*s,
-            Math.sin(t*0.27+1.1)*s,
-            Math.cos(t*0.22+0.6)*s
-          );
-          innerLights[1].position.set(
-            Math.sin(t*0.28+2.2)*s*0.9,
-            Math.cos(t*0.31+0.3)*s*0.9,
-            Math.sin(t*0.26+1.7)*s*0.9
-          );
-          innerLights[2].position.set(
-            Math.cos(t*0.18+0.9)*s*0.75,
-            Math.sin(t*0.21+2.4)*s*0.75,
-            Math.cos(t*0.24+1.9)*s*0.75
-          );
+          // atualiza tempo e matriz inversa p/ raymarch
+          volumeMat.uniforms.uTime.value += dt * 0.65;    // velocidade do “líquido”
+          volumeMat.uniforms.uModelInv.value.copy(volumeCube.matrixWorld).invert();
 
           renderer.render(scene, camera);
           requestAnimationFrame(tick);
@@ -290,7 +383,7 @@
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
 
-        // 60% menor (o mesmo de antes)
+        // tamanho do cubo (mantido ~60% menor do que o “cheio”)
         const s = Math.min(w, h);
         outerCube.scale.setScalar(s / 600);
       }
