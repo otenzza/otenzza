@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Otenzza — your altar of presence & identity</title>
   <link rel="icon" href="/favicon.ico" />
-  <link rel="stylesheet" href="style.css">
 
   <!-- OG / Social -->
   <meta property="og:title" content="Otenzza — your altar of presence & identity" />
@@ -14,7 +13,7 @@
   <meta property="og:url" content="https://otenzza.com" />
   <meta property="og:image" content="https://otenzza.com/logo.png" />
 
-  <!-- Tailwind CDN (rápido p/ protótipo) -->
+  <!-- Tailwind (layout utilitário) -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -29,21 +28,82 @@
     }
   </script>
 
-  <!-- Fundo pontilhado sutil -->
+  <!-- Tipografia: Creato Display (global) -->
+  <link rel="preload" href="assets/fonts/CreatoDisplay-Regular.woff2" as="font" type="font/woff2" crossorigin>
   <style>
-    .grid-bg {
-      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 1px);
-      background-size: 24px 24px;
+    @font-face{
+      font-family:"Creato Display";
+      src: url("assets/fonts/CreatoDisplay-Regular.woff2") format("woff2"),
+           url("assets/fonts/CreatoDisplay-Regular.otf")  format("opentype");
+      font-weight:400; font-style:normal; font-display:swap;
+    }
+
+    :root{ --bg:#0b0b0d; --text:#e8e8ee; }
+
+    /* Fundo pontilhado sutil + glow suave no topo */
+    .grid-bg{
+      background:
+        radial-gradient(900px 420px at 50% 8%, rgba(33,75,255,0.05), transparent 60%),
+        var(--bg);
+    }
+    .dotted{
+      background-image: radial-gradient(rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 26px 26px;
+    }
+
+    /* Tipografia global = Creato Display */
+    body{
+      color:var(--text);
+      font-family:"Creato Display", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
+      -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    }
+
+    /* CTA refinado */
+    .btn-primary{
+      background:#fff; color:#000; box-shadow:0 12px 34px rgba(255,255,255,.08);
+      transition:transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn-primary:hover{ background:#f7f7f7; transform:translateY(-1px) }
+    .btn-ghost{ border-color:rgba(255,255,255,.15); transition:border-color .2s ease, transform .2s ease }
+    .btn-ghost:hover{ border-color:rgba(255,255,255,.35); transform:translateY(-1px) }
+
+    /* Card do cubo */
+    .cube-card{
+      box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.05);
+      transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    }
+    .cube-card:hover{ transform:translateY(-2px); box-shadow:0 16px 40px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06) }
+
+    /* Área do cubo 3D */
+    .cube-wrap{
+      width:min(440px, 85vw);
+      aspect-ratio:1/1;
+      position:relative; display:grid; place-items:center;
+      touch-action:none; overscroll-behavior:contain; user-select:none;
+      border-radius:18px;
+    }
+    .cube-wrap::before{
+      content:""; position:absolute; inset:-14% -14% -8% -14%;
+      border-radius:50%;
+      background:radial-gradient(50% 50% at 50% 60%, rgba(33,75,255,.35), transparent 72%);
+      filter:blur(42px); z-index:0;
+    }
+    #three-canvas{ width:100%; height:100%; display:block; position:relative; z-index:1; border-radius:18px }
+
+    /* Acessibilidade: reduzir movimento */
+    @media (prefers-reduced-motion: reduce){
+      .cube-card, .btn-primary, .btn-ghost{ transition:none }
     }
   </style>
+
   <noscript><style>[data-i18n]{opacity:1!important}</style></noscript>
 </head>
 
-<body class="min-h-screen bg-zinc-950 text-zinc-100 grid-bg">
+<body class="min-h-screen grid-bg dotted">
   <!-- Top bar -->
   <header class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <!-- Mini cubo no header -->
+      <!-- Mini cubo no header (svg) -->
       <svg class="w-8 h-8" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
         <defs>
           <linearGradient id="mTop" x1="0" y1="0" x2="1" y2="1">
@@ -88,56 +148,25 @@
 
         <div class="mt-7 flex flex-col sm:flex-row gap-3">
           <a href="#join"
-             class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90 transition"
+             class="btn-primary px-5 py-3 rounded-2xl font-medium"
              data-i18n="cta_primary">Get my Cube</a>
           <a href="#manifesto"
-             class="px-5 py-3 rounded-2xl border border-white/15 hover:border-white/35 transition"
+             class="btn-ghost px-5 py-3 rounded-2xl border"
              data-i18n="cta_secondary">Read the manifesto</a>
         </div>
       </div>
 
+      <!-- 👉 Cubo 3D interativo no lugar do painel antigo -->
       <div class="md:justify-self-end">
-        <div class="p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm w-fit">
-          <!-- CUBO OTENZZA (SVG animado via CSS em style.css) -->
-          <svg class="cube3d mx-auto" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Otenzza Cube">
-            <defs>
-              <linearGradient id="gTop" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#A9BBFF" stop-opacity="0.75"/>
-                <stop offset="100%" stop-color="#214BFF" stop-opacity="0.90"/>
-              </linearGradient>
-              <linearGradient id="gLeft" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#1332B8" stop-opacity="0.95"/>
-                <stop offset="100%" stop-color="#1C2C6E" stop-opacity="0.95"/>
-              </linearGradient>
-              <linearGradient id="gRight" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#2D5BFF" stop-opacity="0.95"/>
-                <stop offset="100%" stop-color="#1A3DE0" stop-opacity="0.95"/>
-              </linearGradient>
-              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-                <feGaussianBlur stdDeviation="12" result="blur"/>
-                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-              </filter>
-            </defs>
-            <ellipse cx="120" cy="210" rx="62" ry="14" fill="#0b0b0d" opacity="0.55"/>
-            <g filter="url(#glow)">
-              <polygon fill="url(#gTop)"  points="120,28 205,78 120,128 35,78"  opacity="0.95"/>
-              <polygon fill="url(#gLeft)" points="35,78 120,128 120,208 35,158"  opacity="0.98"/>
-              <polygon fill="url(#gRight)" points="205,78 120,128 120,208 205,158" opacity="0.98"/>
-            </g>
-          </svg>
-
-          <!-- Botões das faces com classes de realce -->
-          <div class="mt-5 grid grid-cols-2 gap-3 text-center cube-panel">
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Visual</div>
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Sound</div>
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Text</div>
-            <div class="rounded-xl bg-white/5 py-3 border border-white/10 face-btn">Vibe</div>
+        <div class="cube-card p-6 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-sm w-fit">
+          <div class="cube-wrap" id="cube-wrap">
+            <canvas id="three-canvas"></canvas>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Manifesto curto -->
+    <!-- Manifesto -->
     <section id="manifesto" class="mt-20 max-w-3xl">
       <h2 class="text-2xl font-semibold mb-3" data-i18n="man_title">Why Otenzza?</h2>
       <p class="text-zinc-300" data-i18n="man_p1">
@@ -148,21 +177,20 @@
       </p>
     </section>
 
-    <!-- Join / lead capture placeholder -->
+    <!-- Join -->
     <section id="join" class="mt-16 max-w-xl">
       <div class="rounded-3xl p-5 bg-white/5 border border-white/10">
         <h3 class="text-lg font-medium" data-i18n="join_title">Early access — Founding Members</h3>
         <p class="text-sm text-zinc-300 mt-1" data-i18n="join_sub">
           Be part of the first circle and help shape Otenzza. Limited spots.
         </p>
-        <!-- Substitua action pelo seu provedor (ex. Buttondown/Brevo/Stripe checkout) -->
         <form action="https://buttondown.email/api/emails/embed-subscribe/YOUR_USERNAME"
               method="post" target="_blank" class="mt-4 flex flex-col sm:flex-row gap-3">
           <input type="email" name="email" required
                  class="flex-1 px-4 py-3 rounded-2xl bg-zinc-900 border border-white/10
                         focus:outline-none focus:ring-2 focus:ring-white/20"
                  placeholder="you@email.com" />
-          <button class="px-5 py-3 rounded-2xl bg-white text-black font-medium hover:bg-white/90"
+          <button class="btn-primary px-5 py-3 rounded-2xl font-medium"
                   data-i18n="join_btn">Reserve my invite</button>
         </form>
       </div>
@@ -176,7 +204,7 @@
     </div>
   </footer>
 
-  <!-- i18n: EN default + PT-BR -->
+  <!-- i18n -->
   <script>
     const dict = {
       en: {
@@ -223,6 +251,142 @@
     applyLang("en");
     document.getElementById("year").textContent = new Date().getFullYear();
   </script>
+
+  <!-- Three.js + cubo leve e interativo -->
+  <script src="https://unpkg.com/three@0.158.0/build/three.min.js"></script>
+  <script>
+    (function(){
+      const container = document.getElementById('cube-wrap');
+      const canvas    = document.getElementById('three-canvas');
+
+      let renderer, scene, camera, cubeMesh;
+      let dragging=false, lx=0, ly=0, rx=-0.5, ry=0.9, idle=true;
+
+      function init(){
+        renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:'high-performance'});
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.06;
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+        scene  = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+        camera.position.set(0, 0, 3.6);
+
+        const geo = new THREE.BoxGeometry(1,1,1, 2,2,2);
+
+        const mat = new THREE.ShaderMaterial({
+          uniforms:{
+            uColorDark: {value: new THREE.Color(0x1549ff)},
+            uColorLite: {value: new THREE.Color(0x6abaff)},
+            uSpecColor: {value: new THREE.Color(0xd4ecff)},
+            uLightDir:  {value: new THREE.Vector3(0.6,0.8,0.7).normalize()},
+            uAmbient:   {value: 0.28},
+            uShininess: {value: 42.0},
+            uRimGain:   {value: 0.65},
+            uRimPower:  {value: 2.1},
+            uTime:      {value: 0.0},
+          },
+          vertexShader: `
+            varying vec3 vN, vW, vPos;
+            void main(){
+              vN = normalize(normalMatrix * normal);
+              vec4 wp = modelMatrix * vec4(position,1.0);
+              vW = wp.xyz;
+              vPos = position;
+              gl_Position = projectionMatrix * viewMatrix * wp;
+            }
+          `,
+          fragmentShader: `
+            precision highp float;
+            varying vec3 vN, vW, vPos;
+            uniform vec3 uColorDark, uColorLite, uSpecColor, uLightDir;
+            uniform float uAmbient, uShininess, uRimGain, uRimPower, uTime;
+
+            float rnd(vec2 p){ return fract(sin(dot(p, vec2(12.9898,78.233))) * 43758.5453); }
+
+            void main(){
+              vec3 N = normalize(vN);
+              vec3 L = normalize(uLightDir);
+              vec3 V = normalize(cameraPosition - vW);
+              vec3 H = normalize(L + V);
+
+              float ndl = max(dot(N,L), 0.0);
+              float ndh = max(dot(N,H), 0.0);
+              float spec = pow(ndh, uShininess) * 0.9;
+
+              float g = 0.5 + 0.5*N.y;
+              vec3 base = mix(uColorDark, uColorLite, g);
+
+              vec3 d = smoothstep(0.44, 0.495, abs(vPos));
+              float edge = max(max(min(d.x,d.y), min(d.y,d.z)), min(d.x,d.z));
+              edge = pow(edge, 1.35);
+
+              float rim = pow(1.0 - max(dot(N,V), 0.0), uRimPower) * uRimGain;
+
+              float grain = (rnd(gl_FragCoord.xy + vec2(uTime*60.0, 0.0)) - 0.5) * 0.02;
+
+              vec3 color = base * (uAmbient + ndl*0.9) + uSpecColor * spec + (uColorLite*0.65)*edge + (uColorLite*0.55)*rim;
+              color += grain;
+
+              gl_FragColor = vec4(color, 1.0);
+            }
+          `
+        });
+
+        cubeMesh = new THREE.Mesh(geo, mat);
+        scene.add(cubeMesh);
+
+        // “brilhos” sutis de aresta (additive)
+        function rimMaterial(hex, power, gain){
+          return new THREE.ShaderMaterial({
+            transparent:true, depthWrite:false, blending:THREE.AdditiveBlending,
+            uniforms:{ uColor:{value:new THREE.Color(hex)}, uPower:{value:power}, uGain:{value:gain} },
+            vertexShader:`varying vec3 vN,vW; void main(){ vN=normalize(normalMatrix*normal); vec4 wp=modelMatrix*vec4(position,1.0); vW=wp.xyz; gl_Position=projectionMatrix*viewMatrix*wp; }`,
+            fragmentShader:`precision highp float; uniform vec3 uColor; uniform float uPower,uGain; varying vec3 vN,vW; void main(){ vec3 V=normalize(cameraPosition-vW); float f=pow(1.0-max(dot(normalize(vN),V),0.0),uPower); gl_FragColor=vec4(uColor*f*uGain, f*uGain); }`
+          });
+        }
+        const rimA = new THREE.Mesh(geo, rimMaterial(0xcfe8ff, 2.0, 0.72)); rimA.scale.setScalar(1.002); rimA.renderOrder=2;   cubeMesh.add(rimA);
+        const rimB = new THREE.Mesh(geo, rimMaterial(0x3f7cff, 2.6, 0.58)); rimB.scale.setScalar(1.001); rimB.renderOrder=1.9; cubeMesh.add(rimB);
+
+        applyRot(); resize();
+
+        // interação + bloqueio de scroll durante drag
+        canvas.addEventListener('pointerdown', onDown, {passive:false});
+        canvas.addEventListener('pointermove', onMove, {passive:false});
+        canvas.addEventListener('pointerup', onUp, {passive:false});
+        canvas.addEventListener('pointercancel', onUp, {passive:false});
+        canvas.addEventListener('wheel', e=>e.preventDefault(), {passive:false});
+
+        let last = performance.now();
+        function tick(now){
+          const dt = Math.min(0.05, (now - last)/1000); last = now;
+          if(idle){ ry += 0.0011; applyRot(); }
+          mat.uniforms.uTime.value += dt;
+          renderer.render(scene, camera);
+          requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+      }
+
+      function applyRot(){ cubeMesh.rotation.x = rx; cubeMesh.rotation.y = ry; }
+      function onDown(e){ dragging=true; idle=false; lx=e.clientX; ly=e.clientY; canvas.setPointerCapture(e.pointerId); e.preventDefault(); }
+      function onMove(e){ if(!dragging)return; const dx=e.clientX-lx, dy=e.clientY-ly; ry+=dx*0.01; rx-=dy*0.01; rx=Math.max(-Math.PI/2+0.05, Math.min(Math.PI/2-0.05, rx)); applyRot(); lx=e.clientX; ly=e.clientY; e.preventDefault(); }
+      function onUp(e){ dragging=false; idle=true; try{canvas.releasePointerCapture(e.pointerId);}catch(_){} e.preventDefault(); }
+
+      function resize(){
+        const w = container.clientWidth, h = container.clientHeight;
+        const dpr = Math.min(window.devicePixelRatio, 1.5);
+        if(renderer){ renderer.setPixelRatio(dpr); renderer.setSize(w, h, false); }
+        camera.aspect = w/h; camera.updateProjectionMatrix();
+        const s = Math.min(w,h);
+        cubeMesh.scale.setScalar(s / 600 * 1.15);
+      }
+      window.addEventListener('resize', resize);
+
+      if (document.readyState === 'complete') init();
+      else window.addEventListener('load', init);
+    })();
+  </script>
 </body>
 </html>
-
