@@ -5,28 +5,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Otenzza — your altar of presence</title>
 <meta name="description" content="A private, intentional space. No feed. No vanity metrics. Just your Cube." />
+
+<!-- Sora (apenas para a marca OTENZZA) -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&display=swap" rel="stylesheet">
+
+<!-- Preload da sua fonte (preferir woff2) -->
+<link rel="preload" href="assets/fonts/CreatoDisplay-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/CreatoDisplay-Regular.otf"  as="font" type="font/otf"   crossorigin>
+
 <style>
+  /* ====== SUA FONTE ====== */
+  @font-face{
+    font-family: "Creato Display";
+    src:
+      url("assets/fonts/CreatoDisplay-Regular.woff2") format("woff2"),
+      url("assets/fonts/CreatoDisplay-Regular.otf")  format("opentype");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
   :root{ --bg:#0a0a0d; --text:#e8e8ee; --muted:#9a9ab0; --ring:rgba(255,255,255,.10); }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
     margin:0; color:var(--text);
-    font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    /* >>> TODAS as escritas usam Creato Display (exceto a marca) <<< */
+    font-family: "Creato Display", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial;
     background: radial-gradient(1200px 600px at 50% 45%, #101018 0%, var(--bg) 60%);
     -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
   }
 
   .topbar{position:sticky; top:0; z-index:8; display:flex; align-items:center; justify-content:center; height:82px; backdrop-filter:blur(10px)}
-  .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora",Inter,sans-serif; font-size:clamp(28px,4.4vw,46px)}
+  /* >>> A MARCA continua Sora, como pedido <<< */
+  .brand{display:flex; align-items:center; gap:.6rem; text-transform:uppercase; font-weight:800; letter-spacing:.18em; font-family:"Sora", sans-serif; font-size:clamp(28px,4.4vw,46px)}
   .brand-cube{width:28px; height:auto; display:block}
 
   .hero{min-height:calc(100vh - 82px); display:grid; place-items:center; padding:48px 20px 72px}
   .stack{display:flex; flex-direction:column; align-items:center; text-align:center; gap:16px; width:100%; max-width:1040px}
   .title{font-size:clamp(18px,3.2vw,30px); font-weight:800; letter-spacing:-.01em}
-  /* reduzir somente o espaço entre título e subtítulo pela metade */
+  /* espaço reduzido entre título e subtítulo (metade) */
   .subtitle{max-width:760px; line-height:1.6; color:var(--muted); font-size:clamp(12px,1.2vw,14px); margin-top:-8px;}
 
   .cube-wrap{
@@ -126,11 +146,11 @@
 
         const geo = new THREE.BoxGeometry(1,1,1, 2,2,2);
 
-        // Shader leve — AZUL mais saturado
+        // Shader leve — azul mais saturado
         const mat = new THREE.ShaderMaterial({
           uniforms:{
-            uColorDark: {value: new THREE.Color(0x1549ff)}, // mais saturado
-            uColorLite: {value: new THREE.Color(0x6abaff)}, // highlight mais vivo
+            uColorDark: {value: new THREE.Color(0x1549ff)},
+            uColorLite: {value: new THREE.Color(0x6abaff)},
             uSpecColor: {value: new THREE.Color(0xd4ecff)},
             uLightDir:  {value: new THREE.Vector3(0.6,0.8,0.7).normalize()},
             uAmbient:   {value: 0.28},
@@ -217,12 +237,13 @@
             `
           });
         }
-        rimA = new THREE.Mesh(geo, rimMaterial(0xcfe8ff, 2.0, 0.72)); rimA.scale.setScalar(1.002); rimA.renderOrder=2; cubeMesh.add(rimA);
-        rimB = new THREE.Mesh(geo, rimMaterial(0x3f7cff, 2.6, 0.58)); rimB.scale.setScalar(1.001); rimB.renderOrder=1.9; cubeMesh.add(rimB);
+        const rimA = new THREE.Mesh(geo, rimMaterial(0xcfe8ff, 2.0, 0.72)); rimA.scale.setScalar(1.002); rimA.renderOrder=2; cubeMesh.add(rimA);
+        const rimB = new THREE.Mesh(geo, rimMaterial(0x3f7cff, 2.6, 0.58)); rimB.scale.setScalar(1.001); rimB.renderOrder=1.9; cubeMesh.add(rimB);
 
         applyRot();
         resize();
 
+        // interação e bloqueio de scroll
         canvas.addEventListener('pointerdown', onDown, {passive:false});
         canvas.addEventListener('pointermove', onMove, {passive:false});
         canvas.addEventListener('pointerup', onUp, {passive:false});
@@ -247,10 +268,12 @@
 
       function resize(){
         const w = container.clientWidth, h = container.clientHeight;
-        renderer.setSize(w, h, false);
+        const dpr = Math.min(window.devicePixelRatio, 1.5);
+        const rendererObj = renderer;
+        if(rendererObj){ rendererObj.setPixelRatio(dpr); rendererObj.setSize(w, h, false); }
         camera.aspect = w/h; camera.updateProjectionMatrix();
         const s = Math.min(w, h);
-        cubeMesh.scale.setScalar(s / 600 * 1.15); // +15%
+        cubeMesh.scale.setScalar(s / 600 * 1.15); /* +15% como combinamos */
       }
       window.addEventListener('resize', resize);
 
